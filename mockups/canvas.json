@@ -1,0 +1,17 @@
+{
+  "artboards": [
+    { "file": "Login.dc.html", "x": 0, "y": 0, "w": 1200, "h": 820 },
+    { "file": "Signup.dc.html", "x": 1300, "y": 0, "w": 1200, "h": 820 },
+    { "file": "Main.dc.html", "x": 0, "y": 1000, "w": 1440, "h": 1200 },
+    { "file": "MobileDashboard.dc.html", "x": 1560, "y": 1000, "w": 390, "h": 1320 },
+    { "file": "Import.dc.html", "x": 2050, "y": 1000, "w": 1200, "h": 880 },
+    { "file": "Transactions.dc.html", "x": 0, "y": 2560, "w": 1440, "h": 1040 },
+    { "file": "Rules.dc.html", "x": 1560, "y": 2560, "w": 1440, "h": 980 },
+    { "file": "CashFlow.dc.html", "x": 3120, "y": 2560, "w": 1440, "h": 980 },
+    { "file": "Assistant.dc.html", "x": 4680, "y": 2560, "w": 1440, "h": 1160 }
+  ],
+  "annotations": [
+    { "id": "brief", "x": 0, "y": -150, "w": 660, "text": "Ledgerline — dark finance console. Space Grotesk + JetBrains Mono, near-black layered panels, mint for positive / amber for overspend. Static mockups (no working controls). Sample data = August 2026: spent $4,182, income $6,200, Dining +34% MoM, Shopping +22%. Screens: Login, Sign up, Dashboard (with AI assistant dock), Mobile dashboard, Import CSV + column mapping, Transactions ledger, Categories & Rules, Reports / Cash flow (Sankey), Assistant (full chat page with conversation history)." }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assistant · Ledgerline</title>
+  <link rel="stylesheet" href="/assets/styles.css?v=5">
+</head>
+<body data-page="assistant">
+  <div class="layout">
+    <nav id="side"></nav>
+    <div id="main">
+      <div class="topbar">
+        <div class="row" style="align-items:baseline;gap:12px;"><h1>Assistant</h1><span class="sub">Talk to your data</span></div>
+        <span class="mono pill" id="model-pill" style="border:1px solid var(--line-2);color:var(--text-2);font-size:11px;"></span>
+      </div>
+
+      <div style="flex:1;min-height:0;display:flex;justify-content:center;overflow:auto;">
+        <div id="thread" style="width:100%;max-width:768px;padding:28px 28px 8px;display:flex;flex-direction:column;gap:22px;"></div>
+      </div>
+
+      <div class="composer">
+        <div style="width:100%;max-width:768px;margin:0 auto;display:flex;flex-direction:column;gap:10px;">
+          <div class="wrap" id="chips"></div>
+          <div class="box">
+            <textarea id="input" rows="1" placeholder="Ask about your spending, budgets, or savings…"></textarea>
+            <button class="send" id="send" title="Send">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#06251a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z"/></svg>
+            </button>
+          </div>
+          <p style="text-align:center;font-size:11px;color:var(--text-4);">The assistant reads only your local data. It is not a licensed financial advisor.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/assets/config.js"></script>
+  <script src="/assets/shell.js?v=8"></script>
+  <script src="/assets/assistant.js?v=7"></script>
+</body>
+</html>

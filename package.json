@@ -1,0 +1,24 @@
+{
+  "name": "ledgerline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first personal finance tracker: CSV import, auto-categorization, dashboard, and a local AI assistant.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --experimental-sqlite server.js",
+    "dev": "node --experimental-sqlite --watch server.js",
+    "seed": "node --experimental-sqlite src/seed.js",
+    "reset": "node --experimental-sqlite src/seed.js --reset"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-session": "^2.1.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "multer": "^2.0.1"
+  }
+}

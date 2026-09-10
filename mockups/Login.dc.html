@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <style>
+    *{box-sizing:border-box;}
+    body{margin:0;background:#0c0e12;color:#eef1f6;font-family:"Space Grotesk",system-ui,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+    h1,h2,h3{margin:0;font-weight:600;letter-spacing:-0.015em;}
+    .mono{font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;}
+    .eyebrow{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#616c7e;}
+    a{color:#3ddc97;text-decoration:none;}
+    a:hover{color:#6fe9b6;}
+    input{font:inherit;}
+  </style>
+</helmet>
+
+<div style="width:1200px;height:820px;display:flex;background:#0c0e12;">
+
+  <!-- LEFT / BRAND -->
+  <div style="width:520px;flex-shrink:0;border-right:1px solid #1e242f;background:#0e1116;background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,0.025) 1px, transparent 0);background-size:30px 30px;padding:44px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-120px;right:-120px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle, rgba(61,220,151,0.10) 0%, rgba(61,220,151,0) 70%);"></div>
+
+    <div style="display:flex;align-items:center;gap:11px;position:relative;">
+      <div style="width:30px;height:30px;border:1px solid #2b3444;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#12161d;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3ddc97" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
+      </div>
+      <span style="font-weight:700;font-size:17px;letter-spacing:-0.02em;">Ledgerline</span>
+    </div>
+
+    <div style="position:relative;display:flex;flex-direction:column;gap:22px;">
+      <h1 style="font-size:30px;line-height:1.2;text-wrap:pretty;">Your money,<br>in plain numbers.</h1>
+      <div style="display:flex;flex-direction:column;gap:13px;">
+        <div style="display:flex;align-items:center;gap:11px;font-size:13.5px;color:#c6cdd9;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3ddc97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Import a CSV &mdash; nothing leaves your machine
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;font-size:13.5px;color:#c6cdd9;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3ddc97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Auto-sorted spending, day by day and month by month
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;font-size:13.5px;color:#c6cdd9;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3ddc97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          A local assistant that tells you where to cut back
+        </div>
+      </div>
+    </div>
+
+    <div style="position:relative;display:flex;align-items:flex-end;gap:6px;height:70px;opacity:0.5;">
+      <div style="width:22px;height:44%;background:#232b38;border-radius:3px 3px 0 0;"></div>
+      <div style="width:22px;height:58%;background:#232b38;border-radius:3px 3px 0 0;"></div>
+      <div style="width:22px;height:50%;background:#232b38;border-radius:3px 3px 0 0;"></div>
+      <div style="width:22px;height:70%;background:#232b38;border-radius:3px 3px 0 0;"></div>
+      <div style="width:22px;height:62%;background:#232b38;border-radius:3px 3px 0 0;"></div>
+      <div style="width:22px;height:88%;background:#3ddc97;border-radius:3px 3px 0 0;"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT / FORM -->
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:44px;">
+    <div style="width:360px;display:flex;flex-direction:column;gap:22px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <h2 style="font-size:22px;">Sign in</h2>
+        <p style="margin:0;font-size:13.5px;color:#9aa5b6;">Welcome back. Pick up where you left off.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <label style="display:flex;flex-direction:column;gap:7px;">
+          <span class="eyebrow">Email</span>
+          <input type="text" value="alex@rivera.io" style="background:#12161d;border:1px solid #2b3444;border-radius:9px;padding:11px 13px;color:#eef1f6;font-size:14px;outline:none;">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:7px;">
+          <span class="eyebrow">Password</span>
+          <div style="display:flex;align-items:center;background:#12161d;border:1px solid #2b3444;border-radius:9px;padding:0 13px;">
+            <input type="password" value="............" style="flex:1;background:transparent;border:none;padding:11px 0;color:#eef1f6;font-size:14px;outline:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#616c7e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+        </label>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;">
+          <span style="display:flex;align-items:center;gap:8px;color:#9aa5b6;">
+            <span style="width:15px;height:15px;border-radius:4px;background:#3ddc97;display:flex;align-items:center;justify-content:center;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#06251a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            Keep me signed in
+          </span>
+          <a href="#">Forgot password?</a>
+        </div>
+      </div>
+
+      <button style="background:#3ddc97;border:none;color:#06251a;border-radius:9px;padding:12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;">Sign in</button>
+
+      <div style="text-align:center;font-size:13px;color:#9aa5b6;">
+        New to Ledgerline? <a href="#">Create an account</a>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

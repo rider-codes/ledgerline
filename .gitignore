@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# runtime data — SQLite DB, WAL/SHM, generated session secret
+data/
+
+# local environment (secrets)
+.env
+
+# logs / OS cruft
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# local-only Claude Code settings (keep launch.json tracked)
+.claude/settings.local.json
