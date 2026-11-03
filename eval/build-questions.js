@@ -28,7 +28,11 @@ const embed = require('../src/embed');
 const { computeExpected } = require('./lib/gold');
 
 const SPLIT_SEED = 7351;
-const TEST_QUOTA = { A: 3, B: 2, C: 3, D: 2, E: 2, F: 2, G: 1 }; // 15 test / 35 tune
+// Held-out quota per group (15 test / 35 tune). Revised before any retrieval number existed: the vague
+// groups, where keyword and semantic are expected to differ, were widened from C3/D2 to C4/D3, paid for by
+// A3->A2 and F2->F1 (the groups least likely to separate the three conditions) so the total stays 15.
+// The seeded shuffle is untouched, so each group's earlier test picks are a prefix of the new ones.
+const TEST_QUOTA = { A: 2, B: 2, C: 4, D: 3, E: 2, F: 1, G: 1 };
 const EXHAUSTIVE_MAX = 60; // a month with <= this many expense rows is listed in full for labelling
 const POOL_SEMANTIC_TOP = 20;
 const NET_GROUP_CAP = 25;
@@ -78,12 +82,12 @@ const SPECS = [
   manual('C-04', 'demo', 'C', 'how much goes on gym and fitness?', /fitness|gym|yoga|planet|rei|peloton|sport/i),
   manual('C-05', 'demo', 'C', 'what are my medical and pharmacy costs?', /kaiser|walgreens|cvs|pharmac|clinic|doctor|medic|dental|hospital/i),
   manual('C-06', 'demo', 'C', 'how much did I spend on coffee shop visits?', /coffee|philz|blue bottle|cafe|tartine|bakery|espresso|starbucks/i),
-  manual('C-07', 'real', 'C', 'what did I spend on chai and snacks?', /tea\b|chai|chocobar|vadapav|khari|toast|panipuri|kachori|bhel|biscuit|samosa|snack|namkeen|chips/i),
-  manual('C-08', 'real', 'C', 'how much did I spend on phone and TV recharges?', /recharge|mobile service|data booster|tata|dth|broadband|internet|freedom pack|sim\b/i),
-  manual('C-09', 'real', 'C', 'what did I spend on daily milk?', /milk|\blit\b|liter|buffalo|dairy|curd/i),
-  manual('C-10', 'real', 'C', 'how much did I spend on street food and sweets?', /vadapav|pani ?puri|bhel|kachori|sugarcane|juice|ice ?cream|sweet|jalebi|pav\b|chaat|golgappa|dosa/i),
-  manual('C-11', 'real', 'C', 'what did I spend on doctor and medicine?', /medicine|doctor|koflet|painkiller|pharmac|tablet|syrup|clinic|dental|hospital|cough/i),
-  manual('C-12', 'real', 'C', 'how much did I spend on personal grooming?', /hair ?cut|shav|salon|barber|razor|soap|trimmer|beard|spa\b/i),
+  manual('C-07', 'real', 'C', 'what did I spend on chai and snacks?', /tea\b|chai|chocobar|vadapav|khari|toast|panipuri|kachori|bhel|biscuit|samosa|snack|namkeen|chips/i, { netCap: 12, semTop: 8 }),
+  manual('C-08', 'real', 'C', 'how much did I spend on phone and TV recharges?', /recharge|mobile service|data booster|tata|dth|broadband|internet|freedom pack|sim\b/i, { netCap: 12, semTop: 8 }),
+  manual('C-09', 'real', 'C', 'what did I spend on daily milk?', /milk|\blit\b|liter|buffalo|dairy|curd/i, { netCap: 12, semTop: 8 }),
+  manual('C-10', 'real', 'C', 'how much did I spend on street food and sweets?', /vadapav|pani ?puri|bhel|kachori|sugarcane|juice|ice ?cream|sweet|jalebi|pav\b|chaat|golgappa|dosa/i, { netCap: 12, semTop: 8 }),
+  manual('C-11', 'real', 'C', 'what did I spend on doctor and medicine?', /medicine|doctor|koflet|painkiller|pharmac|tablet|syrup|clinic|dental|hospital|cough/i, { netCap: 12, semTop: 8 }),
+  manual('C-12', 'real', 'C', 'how much did I spend on personal grooming?', /hair ?cut|shav|salon|barber|razor|soap|trimmer|beard|spa\b/i, { netCap: 12, semTop: 8 }),
 
   // ---- D: vague phrasing + a month filter (manual gold within that month) ----
   manual('D-01', 'demo', 'D', 'coffee shops in august', /coffee|philz|blue bottle|cafe|tartine|bakery|espresso|starbucks/i, { month: '2026-08' }),
@@ -177,14 +181,16 @@ async function buildPool(spec) {
     const netRows = rows.filter((r) => spec.manual.net.test(`${r.merchant} ${r.note}`));
     const netCount = new Map();
     for (const r of netRows) netCount.set(label(r), (netCount.get(label(r)) || 0) + 1);
-    const netKeep = new Set([...netCount.entries()].sort((p, q) => q[1] - p[1] || p[0].localeCompare(q[0])).slice(0, NET_GROUP_CAP).map((e) => e[0]));
+    const netCap = spec.manual.netCap || NET_GROUP_CAP;
+    const semTop = spec.manual.semTop || POOL_SEMANTIC_TOP;
+    const netKeep = new Set([...netCount.entries()].sort((p, q) => q[1] - p[1] || p[0].localeCompare(q[0])).slice(0, netCap).map((e) => e[0]));
     const net = netRows.filter((r) => netKeep.has(label(r)));
     // embedding pool: the current retriever's own top matches (this IS pooling from the system under test)
     const sem = await embed.semanticScores(rows, spec.question, { readOnly: true, strict: true });
-    const top = rows.map((r) => ({ r, s: sem.get(r.id) })).sort((p, q) => q.s - p.s).slice(0, POOL_SEMANTIC_TOP).map((x) => x.r);
+    const top = rows.map((r) => ({ r, s: sem.get(r.id) })).sort((p, q) => q.s - p.s).slice(0, semTop).map((x) => x.r);
     const seen = new Set();
     chosen = [...net, ...top].filter((r) => (seen.has(r.id) ? false : seen.add(r.id)));
-    method = `pooled — hand-written keyword net (${netCount.size} merchant texts match; the ${Math.min(netCount.size, NET_GROUP_CAP)} most frequent shown) ∪ merchants of the top ${POOL_SEMANTIC_TOP} rows by embedding similarity, over ${rows.length} expense rows${spec.manual.month ? ` in ${spec.manual.month}` : ''}`;
+    method = `pooled — hand-written keyword net (${netCount.size} merchant texts match; the ${Math.min(netCount.size, netCap)} most frequent shown) ∪ merchants of the top ${semTop} rows by embedding similarity, over ${rows.length} expense rows${spec.manual.month ? ` in ${spec.manual.month}` : ''}`;
   }
   const keep = new Set(chosen.map(label));
   const byMerchant = new Map();

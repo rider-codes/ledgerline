@@ -2729,7 +2729,7 @@
     ]
   },
   "C-07": {
-    "method": "pooled — hand-written keyword net (96 merchant texts match; the 25 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows",
+    "method": "pooled — hand-written keyword net (96 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows",
     "scopeRows": 1996,
     "scopeIds": {
       "2": [
@@ -6825,74 +6825,6 @@
         ]
       },
       {
-        "merchant": "1.5 lit milk + 3 cold drink + 1 khari + 1 bread",
-        "n": 1,
-        "total": 200,
-        "ids": [
-          3236
-        ],
-        "examples": [
-          "2017-03-11 ₹200"
-        ]
-      },
-      {
-        "merchant": "180 Chicken Sandwich + 120 vada pav & Samosa",
-        "n": 1,
-        "total": 300,
-        "ids": [
-          3678
-        ],
-        "examples": [
-          "2017-08-23 ₹300"
-        ]
-      },
-      {
-        "merchant": "2 Bhaji pav + 1 vadapav",
-        "n": 1,
-        "total": 45,
-        "ids": [
-          3655
-        ],
-        "examples": [
-          "2017-08-17 ₹45"
-        ]
-      },
-      {
-        "merchant": "2 Bhajipav + 2 vadapav",
-        "n": 1,
-        "total": 60,
-        "ids": [
-          4487
-        ],
-        "examples": [
-          "2018-07-21 ₹60"
-        ]
-      },
-      {
-        "merchant": "2 chips packets",
-        "n": 2,
-        "total": 30,
-        "ids": [
-          3060,
-          3691
-        ],
-        "examples": [
-          "2016-12-29 ₹10",
-          "2017-08-28 ₹20"
-        ]
-      },
-      {
-        "merchant": "2 chocobar",
-        "n": 1,
-        "total": 45,
-        "ids": [
-          4238
-        ],
-        "examples": [
-          "2018-03-31 ₹45"
-        ]
-      },
-      {
         "merchant": "2 cutting chai",
         "n": 4,
         "total": 80,
@@ -6929,30 +6861,6 @@
         ]
       },
       {
-        "merchant": "2 Kg Onion 30/kg + 1 kg Potato 30/kg + Parle Biscuit Rs 10",
-        "n": 1,
-        "total": 100,
-        "ids": [
-          3532
-        ],
-        "examples": [
-          "2017-07-05 ₹100"
-        ]
-      },
-      {
-        "merchant": "2 tea",
-        "n": 2,
-        "total": 54,
-        "ids": [
-          3448,
-          4227
-        ],
-        "examples": [
-          "2017-05-30 ₹34",
-          "2018-03-25 ₹20"
-        ]
-      },
-      {
         "merchant": "3 cutting chai",
         "n": 1,
         "total": 30,
@@ -6961,94 +6869,6 @@
         ],
         "examples": [
           "2018-07-08 ₹30"
-        ]
-      },
-      {
-        "merchant": "4 chapati",
-        "n": 4,
-        "total": 80,
-        "ids": [
-          3371,
-          3376,
-          3385,
-          3389
-        ],
-        "examples": [
-          "2017-05-09 ₹20",
-          "2017-05-10 ₹20",
-          "2017-05-12 ₹20"
-        ]
-      },
-      {
-        "merchant": "4 kachori",
-        "n": 2,
-        "total": 96,
-        "ids": [
-          4344,
-          4473
-        ],
-        "examples": [
-          "2018-05-12 ₹48",
-          "2018-07-15 ₹48"
-        ]
-      },
-      {
-        "merchant": "6 chapati(8 rs) + half rice",
-        "n": 1,
-        "total": 88,
-        "ids": [
-          3191
-        ],
-        "examples": [
-          "2017-02-27 ₹88"
-        ]
-      },
-      {
-        "merchant": "Bhaji + vadapav",
-        "n": 2,
-        "total": 70,
-        "ids": [
-          4322,
-          4403
-        ],
-        "examples": [
-          "2018-05-03 ₹40",
-          "2018-06-26 ₹30"
-        ]
-      },
-      {
-        "merchant": "biscuits",
-        "n": 2,
-        "total": 155,
-        "ids": [
-          2830,
-          2838
-        ],
-        "examples": [
-          "2016-02-20 ₹85",
-          "2016-02-28 ₹70"
-        ]
-      },
-      {
-        "merchant": "chaas",
-        "n": 1,
-        "total": 17,
-        "ids": [
-          4150
-        ],
-        "examples": [
-          "2018-02-26 ₹17"
-        ]
-      },
-      {
-        "merchant": "Chana masala 30 + 3 chapati",
-        "n": 1,
-        "total": 45,
-        "ids": [
-          3372
-        ],
-        "examples": [
-          "2017-05-09 ₹45"
         ]
       },
       {
@@ -7093,17 +6913,6 @@
         ]
       },
       {
-        "merchant": "dal fry and chapati",
-        "n": 1,
-        "total": 25,
-        "ids": [
-          2666
-        ],
-        "examples": [
-          "2015-03-18 ₹25"
-        ]
-      },
-      {
         "merchant": "Gupta bhel",
         "n": 6,
         "total": 150,
@@ -7140,32 +6949,6 @@
         ]
       },
       {
-        "merchant": "Poha 25+ tea 10",
-        "n": 2,
-        "total": 70,
-        "ids": [
-          3368,
-          3396
-        ],
-        "examples": [
-          "2017-05-08 ₹35",
-          "2017-05-15 ₹35"
-        ]
-      },
-      {
-        "merchant": "Potato chips",
-        "n": 2,
-        "total": 165,
-        "ids": [
-          4220,
-          4353
-        ],
-        "examples": [
-          "2018-03-22 ₹150",
-          "2018-05-14 ₹15"
-        ]
-      },
-      {
         "merchant": "snacks",
         "n": 3,
         "total": 378,
@@ -7178,17 +6961,6 @@
           "2015-01-22 ₹33",
           "2015-02-05 ₹21",
           "2015-04-18 ₹324"
-        ]
-      },
-      {
-        "merchant": "snacks + veggie",
-        "n": 1,
-        "total": 420,
-        "ids": [
-          2691
-        ],
-        "examples": [
-          "2015-04-24 ₹420"
         ]
       },
       {
@@ -7296,7 +7068,7 @@
     ]
   },
   "C-08": {
-    "method": "pooled — hand-written keyword net (21 merchant texts match; the 21 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows",
+    "method": "pooled — hand-written keyword net (21 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows",
     "scopeRows": 1996,
     "scopeIds": {
       "2": [
@@ -11448,17 +11220,6 @@
         ]
       },
       {
-        "merchant": "For tata sky installation (100 rs given by Family )",
-        "n": 1,
-        "total": 200,
-        "ids": [
-          3578
-        ],
-        "examples": [
-          "2017-07-23 ₹200"
-        ]
-      },
-      {
         "merchant": "Internet renewal",
         "n": 3,
         "total": 4400,
@@ -11528,17 +11289,6 @@
           "2016-03-21 ₹251",
           "2016-04-02 ₹251",
           "2016-04-11 ₹251"
-        ]
-      },
-      {
-        "merchant": "Mobile Service Provider fi router",
-        "n": 1,
-        "total": 2099,
-        "ids": [
-          2745
-        ],
-        "examples": [
-          "2015-09-21 ₹2099"
         ]
       },
       {
@@ -11614,41 +11364,6 @@
         ]
       },
       {
-        "merchant": "Mobile Service Provider sim card",
-        "n": 1,
-        "total": 350,
-        "ids": [
-          2748
-        ],
-        "examples": [
-          "2015-09-28 ₹350"
-        ]
-      },
-      {
-        "merchant": "Mobile Service Provider sim card porting",
-        "n": 1,
-        "total": 350,
-        "ids": [
-          2889
-        ],
-        "examples": [
-          "2016-06-22 ₹350"
-        ]
-      },
-      {
-        "merchant": "Monthly recharge",
-        "n": 2,
-        "total": 522,
-        "ids": [
-          3310,
-          3416
-        ],
-        "examples": [
-          "2017-04-21 ₹261",
-          "2017-05-21 ₹261"
-        ]
-      },
-      {
         "merchant": "Permanent Residence - Tata Play recharge",
         "n": 11,
         "total": 1833,
@@ -11672,17 +11387,6 @@
         ]
       },
       {
-        "merchant": "Tata salt 28+ 6 eggs 42",
-        "n": 1,
-        "total": 70,
-        "ids": [
-          3983
-        ],
-        "examples": [
-          "2017-12-27 ₹70"
-        ]
-      },
-      {
         "merchant": "Tata Sky",
         "n": 5,
         "total": 917,
@@ -11698,22 +11402,11 @@
           "2017-01-23 ₹181",
           "2017-02-25 ₹100"
         ]
-      },
-      {
-        "merchant": "Tata sky STB (1299)+ 1 month recharge (226)+ extra wire 45me",
-        "n": 1,
-        "total": 2065,
-        "ids": [
-          3579
-        ],
-        "examples": [
-          "2017-07-23 ₹2065"
-        ]
       }
     ]
   },
   "C-09": {
-    "method": "pooled — hand-written keyword net (28 merchant texts match; the 25 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows",
+    "method": "pooled — hand-written keyword net (28 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows",
     "scopeRows": 1996,
     "scopeIds": {
       "2": [
@@ -15869,61 +15562,6 @@
         ]
       },
       {
-        "merchant": "2 Cadbury dairy milk",
-        "n": 1,
-        "total": 20,
-        "ids": [
-          3465
-        ],
-        "examples": [
-          "2017-06-05 ₹20"
-        ]
-      },
-      {
-        "merchant": "2 milkybar",
-        "n": 1,
-        "total": 20,
-        "ids": [
-          3020
-        ],
-        "examples": [
-          "2016-12-03 ₹20"
-        ]
-      },
-      {
-        "merchant": "3.4 Lit Petrol",
-        "n": 1,
-        "total": 360,
-        "ids": [
-          4462
-        ],
-        "examples": [
-          "2018-07-09 ₹360"
-        ]
-      },
-      {
-        "merchant": "chocobar+milk+chips",
-        "n": 1,
-        "total": 95,
-        "ids": [
-          2937
-        ],
-        "examples": [
-          "2016-09-15 ₹95"
-        ]
-      },
-      {
-        "merchant": "deo and amul milk",
-        "n": 1,
-        "total": 371,
-        "ids": [
-          2579
-        ],
-        "examples": [
-          "2015-02-08 ₹371"
-        ]
-      },
-      {
         "merchant": "Half lit milk",
         "n": 31,
         "total": 1088,
@@ -15967,17 +15605,6 @@
         ]
       },
       {
-        "merchant": "Half lit Varna milk",
-        "n": 1,
-        "total": 36,
-        "ids": [
-          4154
-        ],
-        "examples": [
-          "2018-02-28 ₹36"
-        ]
-      },
-      {
         "merchant": "half liter buffalo",
         "n": 7,
         "total": 238,
@@ -16015,17 +15642,6 @@
         ]
       },
       {
-        "merchant": "milk + butter + biscuits/toast",
-        "n": 1,
-        "total": 77,
-        "ids": [
-          3066
-        ],
-        "examples": [
-          "2016-12-31 ₹77"
-        ]
-      },
-      {
         "merchant": "milk 0.5 lit",
         "n": 3,
         "total": 93,
@@ -16051,39 +15667,6 @@
         "examples": [
           "2017-03-25 ₹60",
           "2017-03-26 ₹60"
-        ]
-      },
-      {
-        "merchant": "milk 1 lit (64) + paneer (75) + bread (30) + 6 eggs (36)",
-        "n": 1,
-        "total": 205,
-        "ids": [
-          3313
-        ],
-        "examples": [
-          "2017-04-22 ₹205"
-        ]
-      },
-      {
-        "merchant": "milk 1 lit + butter milk",
-        "n": 1,
-        "total": 75,
-        "ids": [
-          3174
-        ],
-        "examples": [
-          "2017-02-24 ₹75"
-        ]
-      },
-      {
-        "merchant": "milk 1 lit + butter milk + srikhand pav kg",
-        "n": 1,
-        "total": 148,
-        "ids": [
-          3210
-        ],
-        "examples": [
-          "2017-03-03 ₹148"
         ]
       },
       {
@@ -16166,28 +15749,6 @@
         ]
       },
       {
-        "merchant": "milk 1lit + amul butter milk",
-        "n": 1,
-        "total": 76,
-        "ids": [
-          3193
-        ],
-        "examples": [
-          "2017-02-27 ₹76"
-        ]
-      },
-      {
-        "merchant": "milk 1lit varna",
-        "n": 1,
-        "total": 70,
-        "ids": [
-          3853
-        ],
-        "examples": [
-          "2017-11-13 ₹70"
-        ]
-      },
-      {
         "merchant": "milk half gold",
         "n": 5,
         "total": 170,
@@ -16202,17 +15763,6 @@
           "2015-01-18 ₹29",
           "2015-01-19 ₹29",
           "2015-01-21 ₹28"
-        ]
-      },
-      {
-        "merchant": "milk half gold + 2 packs bourbon biscuits",
-        "n": 1,
-        "total": 49,
-        "ids": [
-          2497
-        ],
-        "examples": [
-          "2015-01-03 ₹49"
         ]
       },
       {
@@ -16245,7 +15795,7 @@
     ]
   },
   "C-10": {
-    "method": "pooled — hand-written keyword net (75 merchant texts match; the 25 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows",
+    "method": "pooled — hand-written keyword net (75 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows",
     "scopeRows": 1996,
     "scopeIds": {
       "2": [
@@ -20325,55 +19875,6 @@
     },
     "groups": [
       {
-        "merchant": "( pav bhaji + 2 extra pav + sabudana khichdi + kothimbir vad",
-        "n": 1,
-        "total": 495,
-        "ids": [
-          3287
-        ],
-        "examples": [
-          "2017-03-31 ₹495"
-        ]
-      },
-      {
-        "merchant": "1 lit",
-        "n": 26,
-        "total": 1816,
-        "ids": [
-          3831,
-          3840,
-          3865,
-          3884,
-          3887,
-          3907,
-          3915,
-          3997,
-          4004,
-          4016,
-          4025,
-          4028,
-          4046,
-          4051,
-          4064,
-          4072,
-          4081,
-          4088,
-          4108,
-          4110,
-          4122,
-          4129,
-          4136,
-          4145,
-          4147,
-          4187
-        ],
-        "examples": [
-          "2017-11-07 ₹70",
-          "2017-11-09 ₹70",
-          "2017-11-16 ₹70"
-        ]
-      },
-      {
         "merchant": "1 Panipuri",
         "n": 4,
         "total": 100,
@@ -20387,50 +19888,6 @@
           "2016-12-31 ₹25",
           "2017-11-19 ₹20",
           "2018-03-18 ₹30"
-        ]
-      },
-      {
-        "merchant": "180 Chicken Sandwich + 120 vada pav & Samosa",
-        "n": 1,
-        "total": 300,
-        "ids": [
-          3678
-        ],
-        "examples": [
-          "2017-08-23 ₹300"
-        ]
-      },
-      {
-        "merchant": "2 Bhaji pav + 1 vadapav",
-        "n": 1,
-        "total": 45,
-        "ids": [
-          3655
-        ],
-        "examples": [
-          "2017-08-17 ₹45"
-        ]
-      },
-      {
-        "merchant": "2 Bhajipav + 2 vadapav",
-        "n": 1,
-        "total": 60,
-        "ids": [
-          4487
-        ],
-        "examples": [
-          "2018-07-21 ₹60"
-        ]
-      },
-      {
-        "merchant": "2 Bombay vada pav",
-        "n": 1,
-        "total": 20,
-        "ids": [
-          3118
-        ],
-        "examples": [
-          "2017-01-19 ₹20"
         ]
       },
       {
@@ -20454,50 +19911,6 @@
         ]
       },
       {
-        "merchant": "2 orange juices",
-        "n": 1,
-        "total": 100,
-        "ids": [
-          3227
-        ],
-        "examples": [
-          "2017-03-09 ₹100"
-        ]
-      },
-      {
-        "merchant": "2 Pani Puri+ 1 samosa chat",
-        "n": 1,
-        "total": 110,
-        "ids": [
-          3331
-        ],
-        "examples": [
-          "2017-04-30 ₹110"
-        ]
-      },
-      {
-        "merchant": "2 samosa (32) + 25 Pani Puri",
-        "n": 1,
-        "total": 57,
-        "ids": [
-          3253
-        ],
-        "examples": [
-          "2017-03-18 ₹57"
-        ]
-      },
-      {
-        "merchant": "2 Shegaon kachori (nasik)",
-        "n": 1,
-        "total": 30,
-        "ids": [
-          3128
-        ],
-        "examples": [
-          "2017-01-29 ₹30"
-        ]
-      },
-      {
         "merchant": "2 sugarcane juice",
         "n": 2,
         "total": 80,
@@ -20508,28 +19921,6 @@
         "examples": [
           "2017-03-12 ₹40",
           "2018-04-29 ₹40"
-        ]
-      },
-      {
-        "merchant": "2 Vadapav",
-        "n": 1,
-        "total": 30,
-        "ids": [
-          4178
-        ],
-        "examples": [
-          "2018-03-07 ₹30"
-        ]
-      },
-      {
-        "merchant": "2 Vadapav 2 samosa pav",
-        "n": 1,
-        "total": 60,
-        "ids": [
-          4394
-        ],
-        "examples": [
-          "2018-06-24 ₹60"
         ]
       },
       {
@@ -20572,17 +19963,6 @@
         ]
       },
       {
-        "merchant": "biscuits + medicine",
-        "n": 1,
-        "total": 68,
-        "ids": [
-          2882
-        ],
-        "examples": [
-          "2016-06-05 ₹68"
-        ]
-      },
-      {
         "merchant": "biscuits+icecream",
         "n": 1,
         "total": 40,
@@ -20594,32 +19974,6 @@
         ]
       },
       {
-        "merchant": "bread",
-        "n": 3,
-        "total": 70,
-        "ids": [
-          2601,
-          2924,
-          2930
-        ],
-        "examples": [
-          "2015-02-15 ₹15",
-          "2016-09-08 ₹20",
-          "2016-09-12 ₹35"
-        ]
-      },
-      {
-        "merchant": "eggs + bread",
-        "n": 1,
-        "total": 110,
-        "ids": [
-          2693
-        ],
-        "examples": [
-          "2015-04-26 ₹110"
-        ]
-      },
-      {
         "merchant": "flowers (.5kg)+sweets (.25gm+10/-)+vegetables (1.5kg)",
         "n": 1,
         "total": 310,
@@ -20628,17 +19982,6 @@
         ],
         "examples": [
           "2015-11-14 ₹310"
-        ]
-      },
-      {
-        "merchant": "good day biscuits",
-        "n": 1,
-        "total": 38,
-        "ids": [
-          2553
-        ],
-        "examples": [
-          "2015-01-29 ₹38"
         ]
       },
       {
@@ -20657,67 +20000,6 @@
           "2017-05-23 ₹25",
           "2017-07-15 ₹25",
           "2017-09-29 ₹25"
-        ]
-      },
-      {
-        "merchant": "hit spray(99)+biscuits+mask",
-        "n": 1,
-        "total": 159,
-        "ids": [
-          2852
-        ],
-        "examples": [
-          "2016-03-28 ₹159"
-        ]
-      },
-      {
-        "merchant": "milk + butter + biscuits/toast",
-        "n": 1,
-        "total": 77,
-        "ids": [
-          3066
-        ],
-        "examples": [
-          "2016-12-31 ₹77"
-        ]
-      },
-      {
-        "merchant": "milk 1 lit",
-        "n": 2,
-        "total": 120,
-        "ids": [
-          3275,
-          3277
-        ],
-        "examples": [
-          "2017-03-25 ₹60",
-          "2017-03-26 ₹60"
-        ]
-      },
-      {
-        "merchant": "pav Bhaji",
-        "n": 2,
-        "total": 305,
-        "ids": [
-          4112,
-          4277
-        ],
-        "examples": [
-          "2018-02-11 ₹235",
-          "2018-04-15 ₹70"
-        ]
-      },
-      {
-        "merchant": "pav vada",
-        "n": 2,
-        "total": 30,
-        "ids": [
-          2956,
-          3170
-        ],
-        "examples": [
-          "2016-10-22 ₹20",
-          "2017-02-21 ₹10"
         ]
       },
       {
@@ -20770,21 +20052,6 @@
           "2016-11-17 ₹10",
           "2017-01-30 ₹15",
           "2017-02-11 ₹10"
-        ]
-      },
-      {
-        "merchant": "snacks",
-        "n": 3,
-        "total": 378,
-        "ids": [
-          2544,
-          2576,
-          2689
-        ],
-        "examples": [
-          "2015-01-22 ₹33",
-          "2015-02-05 ₹21",
-          "2015-04-18 ₹324"
         ]
       },
       {
@@ -20890,7 +20157,7 @@
     ]
   },
   "C-11": {
-    "method": "pooled — hand-written keyword net (26 merchant texts match; the 25 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows",
+    "method": "pooled — hand-written keyword net (26 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows",
     "scopeRows": 1996,
     "scopeIds": {
       "2": [
@@ -25003,17 +24270,6 @@
         ]
       },
       {
-        "merchant": "antibiotics",
-        "n": 1,
-        "total": 354,
-        "ids": [
-          3076
-        ],
-        "examples": [
-          "2017-01-01 ₹354"
-        ]
-      },
-      {
         "merchant": "auto - GTR to hospital",
         "n": 1,
         "total": 30,
@@ -25036,17 +24292,6 @@
         ]
       },
       {
-        "merchant": "biscuits + medicine",
-        "n": 1,
-        "total": 68,
-        "ids": [
-          2882
-        ],
-        "examples": [
-          "2016-06-05 ₹68"
-        ]
-      },
-      {
         "merchant": "Cataract Medicine",
         "n": 3,
         "total": 2493,
@@ -25059,28 +24304,6 @@
           "2018-07-13 ₹1358",
           "2018-07-20 ₹87",
           "2018-07-20 ₹1048"
-        ]
-      },
-      {
-        "merchant": "Cough-sills 4 pcs",
-        "n": 1,
-        "total": 12,
-        "ids": [
-          3510
-        ],
-        "examples": [
-          "2017-06-27 ₹12"
-        ]
-      },
-      {
-        "merchant": "Cough-sills 4 pcs + sinarest 3 pcs",
-        "n": 1,
-        "total": 30,
-        "ids": [
-          4063
-        ],
-        "examples": [
-          "2018-01-22 ₹30"
         ]
       },
       {
@@ -25101,28 +24324,6 @@
         ]
       },
       {
-        "merchant": "Glasses advance",
-        "n": 1,
-        "total": 1000,
-        "ids": [
-          3896
-        ],
-        "examples": [
-          "2017-11-27 ₹1000"
-        ]
-      },
-      {
-        "merchant": "Glasses remaining",
-        "n": 1,
-        "total": 800,
-        "ids": [
-          3909
-        ],
-        "examples": [
-          "2017-11-30 ₹800"
-        ]
-      },
-      {
         "merchant": "Hospital consultation",
         "n": 4,
         "total": 4273,
@@ -25136,28 +24337,6 @@
           "2017-07-28 ₹167",
           "2017-07-28 ₹3050",
           "2017-07-29 ₹556"
-        ]
-      },
-      {
-        "merchant": "koflet",
-        "n": 1,
-        "total": 34,
-        "ids": [
-          2606
-        ],
-        "examples": [
-          "2015-02-19 ₹34"
-        ]
-      },
-      {
-        "merchant": "mandir to hospital",
-        "n": 1,
-        "total": 20,
-        "ids": [
-          2759
-        ],
-        "examples": [
-          "2015-10-23 ₹20"
         ]
       },
       {
@@ -25191,17 +24370,6 @@
         ]
       },
       {
-        "merchant": "ola auto - Current Residence to hospital Place 6",
-        "n": 1,
-        "total": 97,
-        "ids": [
-          3598
-        ],
-        "examples": [
-          "2017-07-29 ₹97"
-        ]
-      },
-      {
         "merchant": "painkillers",
         "n": 2,
         "total": 308,
@@ -25215,28 +24383,6 @@
         ]
       },
       {
-        "merchant": "Permanent Residence to hospital",
-        "n": 1,
-        "total": 30,
-        "ids": [
-          2976
-        ],
-        "examples": [
-          "2016-11-05 ₹30"
-        ]
-      },
-      {
-        "merchant": "Permanent Residence to hospital to n fro",
-        "n": 1,
-        "total": 80,
-        "ids": [
-          2947
-        ],
-        "examples": [
-          "2016-10-09 ₹80"
-        ]
-      },
-      {
         "merchant": "Permanent Residence to nearby hospital",
         "n": 2,
         "total": 80,
@@ -25247,61 +24393,6 @@
         "examples": [
           "2015-11-03 ₹40",
           "2016-05-22 ₹40"
-        ]
-      },
-      {
-        "merchant": "Place 2 station to hospital 2 seat",
-        "n": 1,
-        "total": 50,
-        "ids": [
-          3518
-        ],
-        "examples": [
-          "2017-06-29 ₹50"
-        ]
-      },
-      {
-        "merchant": "share auto - hospital to brc station",
-        "n": 1,
-        "total": 10,
-        "ids": [
-          2490
-        ],
-        "examples": [
-          "2015-01-01 ₹10"
-        ]
-      },
-      {
-        "merchant": "Surgical gloves pair",
-        "n": 1,
-        "total": 20,
-        "ids": [
-          3747
-        ],
-        "examples": [
-          "2017-09-20 ₹20"
-        ]
-      },
-      {
-        "merchant": "syrup",
-        "n": 1,
-        "total": 145,
-        "ids": [
-          3119
-        ],
-        "examples": [
-          "2017-01-19 ₹145"
-        ]
-      },
-      {
-        "merchant": "syrup+tablet+ mortein refill",
-        "n": 1,
-        "total": 221,
-        "ids": [
-          2964
-        ],
-        "examples": [
-          "2016-10-28 ₹221"
         ]
       },
       {
@@ -25320,7 +24411,7 @@
     ]
   },
   "C-12": {
-    "method": "pooled — hand-written keyword net (12 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows",
+    "method": "pooled — hand-written keyword net (12 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows",
     "scopeRows": 1996,
     "scopeIds": {
       "2": [
@@ -29489,17 +28580,6 @@
         ],
         "examples": [
           "2017-01-09 ₹99"
-        ]
-      },
-      {
-        "merchant": "ironing",
-        "n": 1,
-        "total": 40,
-        "ids": [
-          2657
-        ],
-        "examples": [
-          "2015-03-14 ₹40"
         ]
       },
       {

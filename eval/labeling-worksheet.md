@@ -93,196 +93,119 @@ Note:
 
 ## C-07 · real · "what did I spend on chai and snacks?"
 
-_pooled — hand-written keyword net (96 merchant texts match; the 25 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows_
+_pooled — hand-written keyword net (96 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows_
 
 - [ ] **1 Panipuri** — 4 rows, ₹100; e.g. 2016-12-31 ₹25, 2017-11-19 ₹20, 2018-03-18 ₹30 ⟨00⟩
-- [ ] **1.5 lit milk + 3 cold drink + 1 khari + 1 bread** — 1 row, ₹200; e.g. 2017-03-11 ₹200 ⟨01⟩
-- [ ] **180 Chicken Sandwich + 120 vada pav & Samosa** — 1 row, ₹300; e.g. 2017-08-23 ₹300 ⟨02⟩
-- [ ] **2 Bhaji pav + 1 vadapav** — 1 row, ₹45; e.g. 2017-08-17 ₹45 ⟨03⟩
-- [ ] **2 Bhajipav + 2 vadapav** — 1 row, ₹60; e.g. 2018-07-21 ₹60 ⟨04⟩
-- [ ] **2 chips packets** — 2 rows, ₹30; e.g. 2016-12-29 ₹10, 2017-08-28 ₹20 ⟨05⟩
-- [ ] **2 chocobar** — 1 row, ₹45; e.g. 2018-03-31 ₹45 ⟨06⟩
-- [ ] **2 cutting chai** — 4 rows, ₹80; e.g. 2017-12-17 ₹20, 2018-01-07 ₹20, 2018-04-15 ₹20 ⟨07⟩
-- [ ] **2 kachori** — 8 rows, ₹192; e.g. 2017-04-25 ₹24, 2017-05-28 ₹24, 2017-06-01 ₹24 ⟨08⟩
-- [ ] **2 Kg Onion 30/kg + 1 kg Potato 30/kg + Parle Biscuit Rs 10** — 1 row, ₹100; e.g. 2017-07-05 ₹100 ⟨09⟩
-- [ ] **2 tea** — 2 rows, ₹54; e.g. 2017-05-30 ₹34, 2018-03-25 ₹20 ⟨10⟩
-- [ ] **3 cutting chai** — 1 row, ₹30; e.g. 2018-07-08 ₹30 ⟨11⟩
-- [ ] **4 chapati** — 4 rows, ₹80; e.g. 2017-05-09 ₹20, 2017-05-10 ₹20, 2017-05-12 ₹20 ⟨12⟩
-- [ ] **4 kachori** — 2 rows, ₹96; e.g. 2018-05-12 ₹48, 2018-07-15 ₹48 ⟨13⟩
-- [ ] **6 chapati(8 rs) + half rice** — 1 row, ₹88; e.g. 2017-02-27 ₹88 ⟨14⟩
-- [ ] **Bhaji + vadapav** — 2 rows, ₹70; e.g. 2018-05-03 ₹40, 2018-06-26 ₹30 ⟨15⟩
-- [ ] **biscuits** — 2 rows, ₹155; e.g. 2016-02-20 ₹85, 2016-02-28 ₹70 ⟨16⟩
-- [ ] **chaas** — 1 row, ₹17; e.g. 2018-02-26 ₹17 ⟨17⟩
-- [ ] **Chana masala 30 + 3 chapati** — 1 row, ₹45; e.g. 2017-05-09 ₹45 ⟨18⟩
-- [ ] **chocobar** — 13 rows, ₹255; e.g. 2016-12-10 ₹30, 2017-04-30 ₹10, 2017-07-11 ₹15 ⟨19⟩
-- [ ] **cutting chai** — 4 rows, ₹39; e.g. 2018-03-18 ₹10, 2018-07-05 ₹7, 2018-08-05 ₹10 ⟨20⟩
-- [ ] **dal fry and chapati** — 1 row, ₹25; e.g. 2015-03-18 ₹25 ⟨21⟩
-- [ ] **Gupta bhel** — 6 rows, ₹150; e.g. 2017-05-23 ₹25, 2017-07-15 ₹25, 2017-09-29 ₹25 ⟨22⟩
-- [ ] **Khari packet** — 6 rows, ₹270; e.g. 2018-01-29 ₹45, 2018-02-05 ₹45, 2018-02-16 ₹45 ⟨23⟩
-- [ ] **Poha 25+ tea 10** — 2 rows, ₹70; e.g. 2017-05-08 ₹35, 2017-05-15 ₹35 ⟨24⟩
-- [ ] **Potato chips** — 2 rows, ₹165; e.g. 2018-03-22 ₹150, 2018-05-14 ₹15 ⟨25⟩
-- [ ] **snacks** — 3 rows, ₹378; e.g. 2015-01-22 ₹33, 2015-02-05 ₹21, 2015-04-18 ₹324 ⟨26⟩
-- [ ] **snacks + veggie** — 1 row, ₹420; e.g. 2015-04-24 ₹420 ⟨27⟩
-- [ ] **tea** — 18 rows, ₹277; e.g. 2015-01-01 ₹10, 2015-01-02 ₹10, 2015-01-04 ₹20 ⟨28⟩
-- [ ] **Tea** — 24 rows, ₹277; e.g. 2015-02-24 ₹10, 2015-02-26 ₹6, 2015-02-28 ₹20 ⟨29⟩
-- [ ] **Toast packet** — 5 rows, ₹195; e.g. 2018-04-30 ₹45, 2018-05-09 ₹45, 2018-07-09 ₹20 ⟨30⟩
-- [ ] **Vadapav** — 7 rows, ₹120; e.g. 2017-06-02 ₹20, 2017-07-09 ₹20, 2017-09-21 ₹15 ⟨31⟩
+- [ ] **2 cutting chai** — 4 rows, ₹80; e.g. 2017-12-17 ₹20, 2018-01-07 ₹20, 2018-04-15 ₹20 ⟨01⟩
+- [ ] **2 kachori** — 8 rows, ₹192; e.g. 2017-04-25 ₹24, 2017-05-28 ₹24, 2017-06-01 ₹24 ⟨02⟩
+- [ ] **3 cutting chai** — 1 row, ₹30; e.g. 2018-07-08 ₹30 ⟨03⟩
+- [ ] **chocobar** — 13 rows, ₹255; e.g. 2016-12-10 ₹30, 2017-04-30 ₹10, 2017-07-11 ₹15 ⟨04⟩
+- [ ] **cutting chai** — 4 rows, ₹39; e.g. 2018-03-18 ₹10, 2018-07-05 ₹7, 2018-08-05 ₹10 ⟨05⟩
+- [ ] **Gupta bhel** — 6 rows, ₹150; e.g. 2017-05-23 ₹25, 2017-07-15 ₹25, 2017-09-29 ₹25 ⟨06⟩
+- [ ] **Khari packet** — 6 rows, ₹270; e.g. 2018-01-29 ₹45, 2018-02-05 ₹45, 2018-02-16 ₹45 ⟨07⟩
+- [ ] **snacks** — 3 rows, ₹378; e.g. 2015-01-22 ₹33, 2015-02-05 ₹21, 2015-04-18 ₹324 ⟨08⟩
+- [ ] **tea** — 18 rows, ₹277; e.g. 2015-01-01 ₹10, 2015-01-02 ₹10, 2015-01-04 ₹20 ⟨09⟩
+- [ ] **Tea** — 24 rows, ₹277; e.g. 2015-02-24 ₹10, 2015-02-26 ₹6, 2015-02-28 ₹20 ⟨10⟩
+- [ ] **Toast packet** — 5 rows, ₹195; e.g. 2018-04-30 ₹45, 2018-05-09 ₹45, 2018-07-09 ₹20 ⟨11⟩
+- [ ] **Vadapav** — 7 rows, ₹120; e.g. 2017-06-02 ₹20, 2017-07-09 ₹20, 2017-09-21 ₹15 ⟨12⟩
 
 Also include (exact merchant text, separated by `;`): 
 Note: 
 
 ## C-08 · real · "how much did I spend on phone and TV recharges?"
 
-_pooled — hand-written keyword net (21 merchant texts match; the 21 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows_
+_pooled — hand-written keyword net (21 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows_
 
 - [ ] **Annual recharge** — 2 rows, ₹5090; e.g. 2017-07-20 ₹2545, 2018-06-23 ₹2545 ⟨00⟩
 - [ ] **Current Residence - Tata Play recharge** — 8 rows, ₹1316; e.g. 2017-08-19 ₹217, 2017-09-14 ₹100, 2017-09-28 ₹215 ⟨01⟩
 - [ ] **Data booster pack** — 14 rows, ₹3260; e.g. 2017-12-25 ₹181, 2017-12-29 ₹181, 2018-05-14 ₹301 ⟨02⟩
 - [ ] **Family Mobile Service Provider recharge** — 2 rows, ₹5598; e.g. 2016-07-01 ₹2599, 2017-08-04 ₹2999 ⟨03⟩
-- [ ] **For tata sky installation (100 rs given by Family )** — 1 row, ₹200; e.g. 2017-07-23 ₹200 ⟨04⟩
-- [ ] **Internet renewal** — 3 rows, ₹4400; e.g. 2015-01-13 ₹500, 2015-02-08 ₹3400, 2015-02-15 ₹500 ⟨05⟩
-- [ ] **internet renewal (3 months pack)** — 2 rows, ₹2900; e.g. 2015-05-14 ₹1450, 2015-08-13 ₹1450 ⟨06⟩
-- [ ] **mobile recharge sim 2** — 1 row, ₹98; e.g. 2016-11-30 ₹98 ⟨07⟩
-- [ ] **Mobile Service Provider** — 21 rows, ₹5271; e.g. 2016-03-21 ₹251, 2016-04-02 ₹251, 2016-04-11 ₹251 ⟨08⟩
-- [ ] **Mobile Service Provider fi router** — 1 row, ₹2099; e.g. 2015-09-21 ₹2099 ⟨09⟩
-- [ ] **Mobile Service Provider freedom pack** — 5 rows, ₹1480; e.g. 2017-03-10 ₹296, 2017-03-19 ₹296, 2017-10-24 ₹296 ⟨10⟩
-- [ ] **Mobile Service Provider recharge** — 1 row, ₹149; e.g. 2017-01-21 ₹149 ⟨11⟩
-- [ ] **Mobile Service Provider recharge 365 days** — 2 rows, ₹5198; e.g. 2015-07-19 ₹2599, 2016-07-20 ₹2599 ⟨12⟩
-- [ ] **Mobile Service Provider recharge wfh** — 19 rows, ₹5219; e.g. 2015-10-22 ₹251, 2015-11-07 ₹251, 2015-11-21 ₹251 ⟨13⟩
-- [ ] **Mobile Service Provider sim card** — 1 row, ₹350; e.g. 2015-09-28 ₹350 ⟨14⟩
-- [ ] **Mobile Service Provider sim card porting** — 1 row, ₹350; e.g. 2016-06-22 ₹350 ⟨15⟩
-- [ ] **Monthly recharge** — 2 rows, ₹522; e.g. 2017-04-21 ₹261, 2017-05-21 ₹261 ⟨16⟩
-- [ ] **Permanent Residence - Tata Play recharge** — 11 rows, ₹1833; e.g. 2017-10-23 ₹191, 2017-11-25 ₹156, 2017-12-25 ₹156 ⟨17⟩
-- [ ] **Tata salt 28+ 6 eggs 42** — 1 row, ₹70; e.g. 2017-12-27 ₹70 ⟨18⟩
-- [ ] **Tata Sky** — 5 rows, ₹917; e.g. 2016-12-29 ₹214, 2017-01-23 ₹181, 2017-02-25 ₹100 ⟨19⟩
-- [ ] **Tata sky STB (1299)+ 1 month recharge (226)+ extra wire 45me** — 1 row, ₹2065; e.g. 2017-07-23 ₹2065 ⟨20⟩
+- [ ] **Internet renewal** — 3 rows, ₹4400; e.g. 2015-01-13 ₹500, 2015-02-08 ₹3400, 2015-02-15 ₹500 ⟨04⟩
+- [ ] **internet renewal (3 months pack)** — 2 rows, ₹2900; e.g. 2015-05-14 ₹1450, 2015-08-13 ₹1450 ⟨05⟩
+- [ ] **mobile recharge sim 2** — 1 row, ₹98; e.g. 2016-11-30 ₹98 ⟨06⟩
+- [ ] **Mobile Service Provider** — 21 rows, ₹5271; e.g. 2016-03-21 ₹251, 2016-04-02 ₹251, 2016-04-11 ₹251 ⟨07⟩
+- [ ] **Mobile Service Provider freedom pack** — 5 rows, ₹1480; e.g. 2017-03-10 ₹296, 2017-03-19 ₹296, 2017-10-24 ₹296 ⟨08⟩
+- [ ] **Mobile Service Provider recharge** — 1 row, ₹149; e.g. 2017-01-21 ₹149 ⟨09⟩
+- [ ] **Mobile Service Provider recharge 365 days** — 2 rows, ₹5198; e.g. 2015-07-19 ₹2599, 2016-07-20 ₹2599 ⟨10⟩
+- [ ] **Mobile Service Provider recharge wfh** — 19 rows, ₹5219; e.g. 2015-10-22 ₹251, 2015-11-07 ₹251, 2015-11-21 ₹251 ⟨11⟩
+- [ ] **Permanent Residence - Tata Play recharge** — 11 rows, ₹1833; e.g. 2017-10-23 ₹191, 2017-11-25 ₹156, 2017-12-25 ₹156 ⟨12⟩
+- [ ] **Tata Sky** — 5 rows, ₹917; e.g. 2016-12-29 ₹214, 2017-01-23 ₹181, 2017-02-25 ₹100 ⟨13⟩
 
 Also include (exact merchant text, separated by `;`): 
 Note: 
 
 ## C-09 · real · "what did I spend on daily milk?"
 
-_pooled — hand-written keyword net (28 merchant texts match; the 25 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows_
+_pooled — hand-written keyword net (28 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows_
 
 - [ ] **1 lit** — 26 rows, ₹1816; e.g. 2017-11-07 ₹70, 2017-11-09 ₹70, 2017-11-16 ₹70 ⟨00⟩
 - [ ] **1.5 lit milk** — 4 rows, ₹401; e.g. 2017-08-15 ₹99, 2017-08-31 ₹99, 2017-09-17 ₹99 ⟨01⟩
 - [ ] **1.5 lit milk + 3 cold drink + 1 khari + 1 bread** — 1 row, ₹200; e.g. 2017-03-11 ₹200 ⟨02⟩
 - [ ] **1lit buffalo milk** — 1 row, ₹70; e.g. 2016-09-09 ₹70 ⟨03⟩
-- [ ] **2 Cadbury dairy milk** — 1 row, ₹20; e.g. 2017-06-05 ₹20 ⟨04⟩
-- [ ] **2 milkybar** — 1 row, ₹20; e.g. 2016-12-03 ₹20 ⟨05⟩
-- [ ] **3.4 Lit Petrol** — 1 row, ₹360; e.g. 2018-07-09 ₹360 ⟨06⟩
-- [ ] **chocobar+milk+chips** — 1 row, ₹95; e.g. 2016-09-15 ₹95 ⟨07⟩
-- [ ] **deo and amul milk** — 1 row, ₹371; e.g. 2015-02-08 ₹371 ⟨08⟩
-- [ ] **Half lit milk** — 31 rows, ₹1088; e.g. 2017-07-15 ₹32, 2017-07-19 ₹32, 2017-07-20 ₹32 ⟨09⟩
-- [ ] **Half lit Varna milk** — 1 row, ₹36; e.g. 2018-02-28 ₹36 ⟨10⟩
-- [ ] **half liter buffalo** — 7 rows, ₹238; e.g. 2016-09-11 ₹35, 2016-09-12 ₹35, 2017-01-29 ₹35 ⟨11⟩
-- [ ] **Milk** — 6 rows, ₹163; e.g. 2015-02-26 ₹26, 2015-02-28 ₹26, 2015-03-14 ₹26 ⟨12⟩
-- [ ] **milk + butter + biscuits/toast** — 1 row, ₹77; e.g. 2016-12-31 ₹77 ⟨13⟩
-- [ ] **milk 0.5 lit** — 3 rows, ₹93; e.g. 2017-01-03 ₹31, 2017-01-05 ₹31, 2017-01-06 ₹31 ⟨14⟩
-- [ ] **milk 1 lit** — 2 rows, ₹120; e.g. 2017-03-25 ₹60, 2017-03-26 ₹60 ⟨15⟩
-- [ ] **milk 1 lit (64) + paneer (75) + bread (30) + 6 eggs (36)** — 1 row, ₹205; e.g. 2017-04-22 ₹205 ⟨16⟩
-- [ ] **milk 1 lit + butter milk** — 1 row, ₹75; e.g. 2017-02-24 ₹75 ⟨17⟩
-- [ ] **milk 1 lit + butter milk + srikhand pav kg** — 1 row, ₹148; e.g. 2017-03-03 ₹148 ⟨18⟩
-- [ ] **milk 1lit** — 67 rows, ₹4485; e.g. 2015-02-19 ₹60, 2017-03-06 ₹62, 2017-03-07 ₹62 ⟨19⟩
-- [ ] **milk 1lit + amul butter milk** — 1 row, ₹76; e.g. 2017-02-27 ₹76 ⟨20⟩
-- [ ] **milk 1lit varna** — 1 row, ₹70; e.g. 2017-11-13 ₹70 ⟨21⟩
-- [ ] **milk half gold** — 5 rows, ₹170; e.g. 2015-01-18 ₹29, 2015-01-19 ₹29, 2015-01-21 ₹28 ⟨22⟩
-- [ ] **milk half gold + 2 packs bourbon biscuits** — 1 row, ₹49; e.g. 2015-01-03 ₹49 ⟨23⟩
-- [ ] **milk half shakti** — 15 rows, ₹419; e.g. 2015-01-26 ₹26, 2015-01-29 ₹26, 2015-02-01 ₹26 ⟨24⟩
+- [ ] **Half lit milk** — 31 rows, ₹1088; e.g. 2017-07-15 ₹32, 2017-07-19 ₹32, 2017-07-20 ₹32 ⟨04⟩
+- [ ] **half liter buffalo** — 7 rows, ₹238; e.g. 2016-09-11 ₹35, 2016-09-12 ₹35, 2017-01-29 ₹35 ⟨05⟩
+- [ ] **Milk** — 6 rows, ₹163; e.g. 2015-02-26 ₹26, 2015-02-28 ₹26, 2015-03-14 ₹26 ⟨06⟩
+- [ ] **milk 0.5 lit** — 3 rows, ₹93; e.g. 2017-01-03 ₹31, 2017-01-05 ₹31, 2017-01-06 ₹31 ⟨07⟩
+- [ ] **milk 1 lit** — 2 rows, ₹120; e.g. 2017-03-25 ₹60, 2017-03-26 ₹60 ⟨08⟩
+- [ ] **milk 1lit** — 67 rows, ₹4485; e.g. 2015-02-19 ₹60, 2017-03-06 ₹62, 2017-03-07 ₹62 ⟨09⟩
+- [ ] **milk half gold** — 5 rows, ₹170; e.g. 2015-01-18 ₹29, 2015-01-19 ₹29, 2015-01-21 ₹28 ⟨10⟩
+- [ ] **milk half shakti** — 15 rows, ₹419; e.g. 2015-01-26 ₹26, 2015-01-29 ₹26, 2015-02-01 ₹26 ⟨11⟩
 
 Also include (exact merchant text, separated by `;`): 
 Note: 
 
 ## C-10 · real · "how much did I spend on street food and sweets?"
 
-_pooled — hand-written keyword net (75 merchant texts match; the 25 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows_
+_pooled — hand-written keyword net (75 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows_
 
-- [ ] **( pav bhaji + 2 extra pav + sabudana khichdi + kothimbir vad** — 1 row, ₹495; e.g. 2017-03-31 ₹495 ⟨00⟩
-- [ ] **1 lit** — 26 rows, ₹1816; e.g. 2017-11-07 ₹70, 2017-11-09 ₹70, 2017-11-16 ₹70 ⟨01⟩
-- [ ] **1 Panipuri** — 4 rows, ₹100; e.g. 2016-12-31 ₹25, 2017-11-19 ₹20, 2018-03-18 ₹30 ⟨02⟩
-- [ ] **180 Chicken Sandwich + 120 vada pav & Samosa** — 1 row, ₹300; e.g. 2017-08-23 ₹300 ⟨03⟩
-- [ ] **2 Bhaji pav + 1 vadapav** — 1 row, ₹45; e.g. 2017-08-17 ₹45 ⟨04⟩
-- [ ] **2 Bhajipav + 2 vadapav** — 1 row, ₹60; e.g. 2018-07-21 ₹60 ⟨05⟩
-- [ ] **2 Bombay vada pav** — 1 row, ₹20; e.g. 2017-01-19 ₹20 ⟨06⟩
-- [ ] **2 kachori** — 8 rows, ₹192; e.g. 2017-04-25 ₹24, 2017-05-28 ₹24, 2017-06-01 ₹24 ⟨07⟩
-- [ ] **2 orange juices** — 1 row, ₹100; e.g. 2017-03-09 ₹100 ⟨08⟩
-- [ ] **2 Pani Puri+ 1 samosa chat** — 1 row, ₹110; e.g. 2017-04-30 ₹110 ⟨09⟩
-- [ ] **2 samosa (32) + 25 Pani Puri** — 1 row, ₹57; e.g. 2017-03-18 ₹57 ⟨10⟩
-- [ ] **2 Shegaon kachori (nasik)** — 1 row, ₹30; e.g. 2017-01-29 ₹30 ⟨11⟩
-- [ ] **2 sugarcane juice** — 2 rows, ₹80; e.g. 2017-03-12 ₹40, 2018-04-29 ₹40 ⟨12⟩
-- [ ] **2 Vadapav** — 1 row, ₹30; e.g. 2018-03-07 ₹30 ⟨13⟩
-- [ ] **2 Vadapav 2 samosa pav** — 1 row, ₹60; e.g. 2018-06-24 ₹60 ⟨14⟩
-- [ ] **4 kachori** — 2 rows, ₹96; e.g. 2018-05-12 ₹48, 2018-07-15 ₹48 ⟨15⟩
-- [ ] **Bhaji + vadapav** — 2 rows, ₹70; e.g. 2018-05-03 ₹40, 2018-06-26 ₹30 ⟨16⟩
-- [ ] **biscuits** — 2 rows, ₹155; e.g. 2016-02-20 ₹85, 2016-02-28 ₹70 ⟨17⟩
-- [ ] **biscuits + medicine** — 1 row, ₹68; e.g. 2016-06-05 ₹68 ⟨18⟩
-- [ ] **biscuits+icecream** — 1 row, ₹40; e.g. 2017-01-04 ₹40 ⟨19⟩
-- [ ] **bread** — 3 rows, ₹70; e.g. 2015-02-15 ₹15, 2016-09-08 ₹20, 2016-09-12 ₹35 ⟨20⟩
-- [ ] **eggs + bread** — 1 row, ₹110; e.g. 2015-04-26 ₹110 ⟨21⟩
-- [ ] **flowers (.5kg)+sweets (.25gm+10/-)+vegetables (1.5kg)** — 1 row, ₹310; e.g. 2015-11-14 ₹310 ⟨22⟩
-- [ ] **good day biscuits** — 1 row, ₹38; e.g. 2015-01-29 ₹38 ⟨23⟩
-- [ ] **Gupta bhel** — 6 rows, ₹150; e.g. 2017-05-23 ₹25, 2017-07-15 ₹25, 2017-09-29 ₹25 ⟨24⟩
-- [ ] **hit spray(99)+biscuits+mask** — 1 row, ₹159; e.g. 2016-03-28 ₹159 ⟨25⟩
-- [ ] **milk + butter + biscuits/toast** — 1 row, ₹77; e.g. 2016-12-31 ₹77 ⟨26⟩
-- [ ] **milk 1 lit** — 2 rows, ₹120; e.g. 2017-03-25 ₹60, 2017-03-26 ₹60 ⟨27⟩
-- [ ] **pav Bhaji** — 2 rows, ₹305; e.g. 2018-02-11 ₹235, 2018-04-15 ₹70 ⟨28⟩
-- [ ] **pav vada** — 2 rows, ₹30; e.g. 2016-10-22 ₹20, 2017-02-21 ₹10 ⟨29⟩
-- [ ] **Puja saman (150 for 5 Nariyal, 400 for 1kg sweets and 190 fo** — 1 row, ₹740; e.g. 2016-11-19 ₹740 ⟨30⟩
-- [ ] **sanitary napkins+chocolates+Maggie+khajoor** — 1 row, ₹504; e.g. 2016-05-29 ₹504 ⟨31⟩
-- [ ] **Shev bhaji sev pav kg** — 3 rows, ₹180; e.g. 2017-06-19 ₹60, 2017-11-13 ₹60, 2018-07-09 ₹60 ⟨32⟩
-- [ ] **single pav vada** — 3 rows, ₹35; e.g. 2016-11-17 ₹10, 2017-01-30 ₹15, 2017-02-11 ₹10 ⟨33⟩
-- [ ] **snacks** — 3 rows, ₹378; e.g. 2015-01-22 ₹33, 2015-02-05 ₹21, 2015-04-18 ₹324 ⟨34⟩
-- [ ] **snacks + veggie** — 1 row, ₹420; e.g. 2015-04-24 ₹420 ⟨35⟩
-- [ ] **sugar + biscuits** — 1 row, ₹120; e.g. 2016-10-14 ₹120 ⟨36⟩
-- [ ] **sugarcane juice** — 6 rows, ₹115; e.g. 2017-04-10 ₹20, 2017-04-22 ₹20, 2017-05-05 ₹20 ⟨37⟩
-- [ ] **sugarcane juice 2** — 3 rows, ₹90; e.g. 2017-02-19 ₹30, 2017-02-28 ₹30, 2017-03-05 ₹30 ⟨38⟩
-- [ ] **toothbrush + biscuits** — 1 row, ₹50; e.g. 2015-04-01 ₹50 ⟨39⟩
-- [ ] **Vadapav** — 7 rows, ₹120; e.g. 2017-06-02 ₹20, 2017-07-09 ₹20, 2017-09-21 ₹15 ⟨40⟩
-- [ ] **vanilla ice cream cups 2** — 3 rows, ₹60; e.g. 2016-09-12 ₹20, 2017-03-04 ₹20, 2017-03-07 ₹20 ⟨41⟩
+- [ ] **1 Panipuri** — 4 rows, ₹100; e.g. 2016-12-31 ₹25, 2017-11-19 ₹20, 2018-03-18 ₹30 ⟨00⟩
+- [ ] **2 kachori** — 8 rows, ₹192; e.g. 2017-04-25 ₹24, 2017-05-28 ₹24, 2017-06-01 ₹24 ⟨01⟩
+- [ ] **2 sugarcane juice** — 2 rows, ₹80; e.g. 2017-03-12 ₹40, 2018-04-29 ₹40 ⟨02⟩
+- [ ] **4 kachori** — 2 rows, ₹96; e.g. 2018-05-12 ₹48, 2018-07-15 ₹48 ⟨03⟩
+- [ ] **Bhaji + vadapav** — 2 rows, ₹70; e.g. 2018-05-03 ₹40, 2018-06-26 ₹30 ⟨04⟩
+- [ ] **biscuits** — 2 rows, ₹155; e.g. 2016-02-20 ₹85, 2016-02-28 ₹70 ⟨05⟩
+- [ ] **biscuits+icecream** — 1 row, ₹40; e.g. 2017-01-04 ₹40 ⟨06⟩
+- [ ] **flowers (.5kg)+sweets (.25gm+10/-)+vegetables (1.5kg)** — 1 row, ₹310; e.g. 2015-11-14 ₹310 ⟨07⟩
+- [ ] **Gupta bhel** — 6 rows, ₹150; e.g. 2017-05-23 ₹25, 2017-07-15 ₹25, 2017-09-29 ₹25 ⟨08⟩
+- [ ] **Puja saman (150 for 5 Nariyal, 400 for 1kg sweets and 190 fo** — 1 row, ₹740; e.g. 2016-11-19 ₹740 ⟨09⟩
+- [ ] **sanitary napkins+chocolates+Maggie+khajoor** — 1 row, ₹504; e.g. 2016-05-29 ₹504 ⟨10⟩
+- [ ] **Shev bhaji sev pav kg** — 3 rows, ₹180; e.g. 2017-06-19 ₹60, 2017-11-13 ₹60, 2018-07-09 ₹60 ⟨11⟩
+- [ ] **single pav vada** — 3 rows, ₹35; e.g. 2016-11-17 ₹10, 2017-01-30 ₹15, 2017-02-11 ₹10 ⟨12⟩
+- [ ] **snacks + veggie** — 1 row, ₹420; e.g. 2015-04-24 ₹420 ⟨13⟩
+- [ ] **sugar + biscuits** — 1 row, ₹120; e.g. 2016-10-14 ₹120 ⟨14⟩
+- [ ] **sugarcane juice** — 6 rows, ₹115; e.g. 2017-04-10 ₹20, 2017-04-22 ₹20, 2017-05-05 ₹20 ⟨15⟩
+- [ ] **sugarcane juice 2** — 3 rows, ₹90; e.g. 2017-02-19 ₹30, 2017-02-28 ₹30, 2017-03-05 ₹30 ⟨16⟩
+- [ ] **toothbrush + biscuits** — 1 row, ₹50; e.g. 2015-04-01 ₹50 ⟨17⟩
+- [ ] **Vadapav** — 7 rows, ₹120; e.g. 2017-06-02 ₹20, 2017-07-09 ₹20, 2017-09-21 ₹15 ⟨18⟩
+- [ ] **vanilla ice cream cups 2** — 3 rows, ₹60; e.g. 2016-09-12 ₹20, 2017-03-04 ₹20, 2017-03-07 ₹20 ⟨19⟩
 
 Also include (exact merchant text, separated by `;`): 
 Note: 
 
 ## C-11 · real · "what did I spend on doctor and medicine?"
 
-_pooled — hand-written keyword net (26 merchant texts match; the 25 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows_
+_pooled — hand-written keyword net (26 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows_
 
 - [ ] **3 tablet Nor tz** — 1 row, ₹21; e.g. 2017-09-29 ₹21 ⟨00⟩
 - [ ] **4 paracetamol tablets** — 1 row, ₹10; e.g. 2017-08-01 ₹10 ⟨01⟩
 - [ ] **adulsa ( tonic for cough )** — 1 row, ₹90; e.g. 2017-01-11 ₹90 ⟨02⟩
-- [ ] **antibiotics** — 1 row, ₹354; e.g. 2017-01-01 ₹354 ⟨03⟩
-- [ ] **auto - GTR to hospital** — 1 row, ₹30; e.g. 2015-01-16 ₹30 ⟨04⟩
-- [ ] **auto -hospital to bridge** — 1 row, ₹50; e.g. 2015-01-10 ₹50 ⟨05⟩
-- [ ] **biscuits + medicine** — 1 row, ₹68; e.g. 2016-06-05 ₹68 ⟨06⟩
-- [ ] **Cataract Medicine** — 3 rows, ₹2493; e.g. 2018-07-13 ₹1358, 2018-07-20 ₹87, 2018-07-20 ₹1048 ⟨07⟩
-- [ ] **Cough-sills 4 pcs** — 1 row, ₹12; e.g. 2017-06-27 ₹12 ⟨08⟩
-- [ ] **Cough-sills 4 pcs + sinarest 3 pcs** — 1 row, ₹30; e.g. 2018-01-22 ₹30 ⟨09⟩
-- [ ] **Doctor Fees** — 5 rows, ₹900; e.g. 2016-12-11 ₹200, 2017-01-01 ₹300, 2017-03-25 ₹150 ⟨10⟩
-- [ ] **Glasses advance** — 1 row, ₹1000; e.g. 2017-11-27 ₹1000 ⟨11⟩
-- [ ] **Glasses remaining** — 1 row, ₹800; e.g. 2017-11-30 ₹800 ⟨12⟩
-- [ ] **Hospital consultation** — 4 rows, ₹4273; e.g. 2017-07-28 ₹167, 2017-07-28 ₹3050, 2017-07-29 ₹556 ⟨13⟩
-- [ ] **koflet** — 1 row, ₹34; e.g. 2015-02-19 ₹34 ⟨14⟩
-- [ ] **mandir to hospital** — 1 row, ₹20; e.g. 2015-10-23 ₹20 ⟨15⟩
-- [ ] **Medicine** — 7 rows, ₹1836; e.g. 2016-10-09 ₹40, 2016-10-26 ₹617, 2017-09-15 ₹373 ⟨16⟩
-- [ ] **medicine** — 1 row, ₹700; e.g. 2016-11-03 ₹700 ⟨17⟩
-- [ ] **ola auto - Current Residence to hospital Place 6** — 1 row, ₹97; e.g. 2017-07-29 ₹97 ⟨18⟩
-- [ ] **painkillers** — 2 rows, ₹308; e.g. 2015-03-02 ₹226, 2015-03-03 ₹82 ⟨19⟩
-- [ ] **Permanent Residence to hospital** — 1 row, ₹30; e.g. 2016-11-05 ₹30 ⟨20⟩
-- [ ] **Permanent Residence to hospital to n fro** — 1 row, ₹80; e.g. 2016-10-09 ₹80 ⟨21⟩
-- [ ] **Permanent Residence to nearby hospital** — 2 rows, ₹80; e.g. 2015-11-03 ₹40, 2016-05-22 ₹40 ⟨22⟩
-- [ ] **Place 2 station to hospital 2 seat** — 1 row, ₹50; e.g. 2017-06-29 ₹50 ⟨23⟩
-- [ ] **share auto - hospital to brc station** — 1 row, ₹10; e.g. 2015-01-01 ₹10 ⟨24⟩
-- [ ] **Surgical gloves pair** — 1 row, ₹20; e.g. 2017-09-20 ₹20 ⟨25⟩
-- [ ] **syrup** — 1 row, ₹145; e.g. 2017-01-19 ₹145 ⟨26⟩
-- [ ] **syrup+tablet+ mortein refill** — 1 row, ₹221; e.g. 2016-10-28 ₹221 ⟨27⟩
-- [ ] **Thyroid Tablets** — 2 rows, ₹912; e.g. 2018-01-13 ₹740, 2018-03-06 ₹172 ⟨28⟩
+- [ ] **auto - GTR to hospital** — 1 row, ₹30; e.g. 2015-01-16 ₹30 ⟨03⟩
+- [ ] **auto -hospital to bridge** — 1 row, ₹50; e.g. 2015-01-10 ₹50 ⟨04⟩
+- [ ] **Cataract Medicine** — 3 rows, ₹2493; e.g. 2018-07-13 ₹1358, 2018-07-20 ₹87, 2018-07-20 ₹1048 ⟨05⟩
+- [ ] **Doctor Fees** — 5 rows, ₹900; e.g. 2016-12-11 ₹200, 2017-01-01 ₹300, 2017-03-25 ₹150 ⟨06⟩
+- [ ] **Hospital consultation** — 4 rows, ₹4273; e.g. 2017-07-28 ₹167, 2017-07-28 ₹3050, 2017-07-29 ₹556 ⟨07⟩
+- [ ] **Medicine** — 7 rows, ₹1836; e.g. 2016-10-09 ₹40, 2016-10-26 ₹617, 2017-09-15 ₹373 ⟨08⟩
+- [ ] **medicine** — 1 row, ₹700; e.g. 2016-11-03 ₹700 ⟨09⟩
+- [ ] **painkillers** — 2 rows, ₹308; e.g. 2015-03-02 ₹226, 2015-03-03 ₹82 ⟨10⟩
+- [ ] **Permanent Residence to nearby hospital** — 2 rows, ₹80; e.g. 2015-11-03 ₹40, 2016-05-22 ₹40 ⟨11⟩
+- [ ] **Thyroid Tablets** — 2 rows, ₹912; e.g. 2018-01-13 ₹740, 2018-03-06 ₹172 ⟨12⟩
 
 Also include (exact merchant text, separated by `;`): 
 Note: 
 
 ## C-12 · real · "how much did I spend on personal grooming?"
 
-_pooled — hand-written keyword net (12 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 1996 expense rows_
+_pooled — hand-written keyword net (12 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows_
 
 - [ ] **cutting + shaving** — 1 row, ₹80; e.g. 2016-11-02 ₹80 ⟨00⟩
 - [ ] **Forrest essential after shave** — 1 row, ₹1595; e.g. 2017-06-22 ₹1595 ⟨01⟩
@@ -291,13 +214,12 @@ _pooled — hand-written keyword net (12 merchant texts match; the 12 most frequ
 - [ ] **hair cut+shaving** — 4 rows, ₹530; e.g. 2016-05-22 ₹120, 2017-01-09 ₹80, 2017-12-03 ₹160 ⟨04⟩
 - [ ] **hair cut+shaving+dye+facial** — 1 row, ₹2000; e.g. 2015-12-30 ₹2000 ⟨05⟩
 - [ ] **Himalaya soap(30) + Sofie (59) + kitkat (10)** — 1 row, ₹99; e.g. 2017-01-09 ₹99 ⟨06⟩
-- [ ] **ironing** — 1 row, ₹40; e.g. 2015-03-14 ₹40 ⟨07⟩
-- [ ] **razor** — 1 row, ₹174; e.g. 2016-10-08 ₹174 ⟨08⟩
-- [ ] **Razor Blade** — 1 row, ₹247; e.g. 2017-05-16 ₹247 ⟨09⟩
-- [ ] **shaving** — 1 row, ₹50; e.g. 2015-01-11 ₹50 ⟨10⟩
-- [ ] **Shaving** — 5 rows, ₹260; e.g. 2017-05-18 ₹50, 2017-06-29 ₹60, 2017-08-21 ₹50 ⟨11⟩
-- [ ] **Soap + dahya pav kg** — 1 row, ₹75; e.g. 2018-05-27 ₹75 ⟨12⟩
-- [ ] **Soap, shampoo, razor** — 1 row, ₹122; e.g. 2018-05-20 ₹122 ⟨13⟩
+- [ ] **razor** — 1 row, ₹174; e.g. 2016-10-08 ₹174 ⟨07⟩
+- [ ] **Razor Blade** — 1 row, ₹247; e.g. 2017-05-16 ₹247 ⟨08⟩
+- [ ] **shaving** — 1 row, ₹50; e.g. 2015-01-11 ₹50 ⟨09⟩
+- [ ] **Shaving** — 5 rows, ₹260; e.g. 2017-05-18 ₹50, 2017-06-29 ₹60, 2017-08-21 ₹50 ⟨10⟩
+- [ ] **Soap + dahya pav kg** — 1 row, ₹75; e.g. 2018-05-27 ₹75 ⟨11⟩
+- [ ] **Soap, shampoo, razor** — 1 row, ₹122; e.g. 2018-05-20 ₹122 ⟨12⟩
 
 Also include (exact merchant text, separated by `;`): 
 Note: 
