@@ -3,7 +3,7 @@
 const { db, CATEGORIES } = require('./db');
 const A = require('./analytics');
 const { CAT_SYNONYMS, MONTH_NAMES } = require('./vocab');
-const { retrieve, formatForPrompt, searchAnswer } = require('./retrieve');
+const { retrieve, formatForPrompt, searchAnswer, summarizeRetrieval } = require('./retrieve');
 
 const CURRENCY = () => process.env.CURRENCY || '$';
 const fmt = (n) => `${CURRENCY()}${Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -294,23 +294,29 @@ function answerOverview(userId, month) {
   return parts.join('\n');
 }
 
-async function viaRules(userId, summary, message) {
+// ctx (all optional): { trace, retrieval, evalMode } — see askStream.
+async function viaRules(userId, summary, message, ctx = {}) {
   const q = ` ${String(message || '').toLowerCase().replace(/[^\w\s%$?,.-]/g, ' ').replace(/\s+/g, ' ').trim()} `;
   const month = findMonth(userId, q);
   const category = findCategory(q);
   const merchant = findMerchant(userId, q);
+  // record which handler answered, so an eval can tell "retrieval question" from "analytics question"
+  const done = (route, text) => {
+    if (ctx.trace) Object.assign(ctx.trace, { route, month, category, merchant });
+    return text;
+  };
 
   // explicit intents first
-  if (/(savings? rate|saving enough|am i saving|how.?s my saving|left ?over|surplus|net income|how much (do|did|am) i (save|saving|keep))/.test(q)) return answerSavings(userId, month);
-  if (/(where can i save|save money|cut back|cut down|reduce (my )?spend|trim|spend less|help me save|save on|tighten)/.test(q)) return answerSave(userId, month);
-  if (/(overspend|over-?spent|over spend|too much|spik|blew|splurg|worst|ran hot|went over)/.test(q)) return answerOverspend(userId, month);
-  if (/(subscription|recurring charge|unused|streaming service|memberships?)/.test(q)) return answerSubscriptions(userId);
-  if (/(biggest|largest|most expensive|priciest|top (purchase|expense|transaction)|single (biggest|largest))/.test(q)) return answerBiggest(userId, month);
-  if (/(income|salary|paycheck|paychecks|get paid|\bearn|made this|how much.*made|deposits?)/.test(q)) return answerIncome(userId, month);
+  if (/(savings? rate|saving enough|am i saving|how.?s my saving|left ?over|surplus|net income|how much (do|did|am) i (save|saving|keep))/.test(q)) return done('savings', answerSavings(userId, month));
+  if (/(where can i save|save money|cut back|cut down|reduce (my )?spend|trim|spend less|help me save|save on|tighten)/.test(q)) return done('save', answerSave(userId, month));
+  if (/(overspend|over-?spent|over spend|too much|spik|blew|splurg|worst|ran hot|went over)/.test(q)) return done('overspend', answerOverspend(userId, month));
+  if (/(subscription|recurring charge|unused|streaming service|memberships?)/.test(q)) return done('subscriptions', answerSubscriptions(userId));
+  if (/(biggest|largest|most expensive|priciest|top (purchase|expense|transaction)|single (biggest|largest))/.test(q)) return done('biggest', answerBiggest(userId, month));
+  if (/(income|salary|paycheck|paychecks|get paid|\bearn|made this|how much.*made|deposits?)/.test(q)) return done('income', answerIncome(userId, month));
   if (/(compare|\bvs\b|versus|month.*to.*month|to last month|against last)/.test(q)) {
     const mm = monthsInQuery(userId, q);
-    if (mm.length >= 2) return answerCompare(userId, mm[0], mm[1]);
-    return answerCompare(userId, month);
+    if (mm.length >= 2) return done('compare', answerCompare(userId, mm[0], mm[1]));
+    return done('compare', answerCompare(userId, month));
   }
 
   // transaction search (retrieval): "show me / list / find ...", explicit amount windows,
@@ -320,16 +326,19 @@ async function viaRules(userId, summary, message) {
     (/(over|under|above|below|between|more than|less than)\s+\$?\d/.test(q) && /(transaction|charge|purchase|spent|bought|paid)/.test(q)) ||
     /\b(purchases|charges|orders|runs|trips|visits)\b/.test(q)
   ) {
-    return await searchAnswer(userId, message, { defaultMonth: A.defaultMonth(userId) });
+    const text = await searchAnswer(userId, message, {
+      defaultMonth: A.defaultMonth(userId), ...ctx.retrieval, evalMode: !!ctx.evalMode, trace: ctx.trace,
+    });
+    return done('search', text);
   }
 
   // entity-driven
-  if (merchant && /(spend|spent|cost|how much|paid|charge|at |on )/.test(q)) return answerMerchant(userId, merchant, month);
-  if (category) return answerCategory(userId, category, month);
-  if (merchant) return answerMerchant(userId, merchant, month);
-  if (/(total|how much did i spend|how much have i spent|spending this|spend this|spent in|what did i spend)/.test(q)) return answerTotal(userId, month);
+  if (merchant && /(spend|spent|cost|how much|paid|charge|at |on )/.test(q)) return done('merchant', answerMerchant(userId, merchant, month));
+  if (category) return done('category', answerCategory(userId, category, month));
+  if (merchant) return done('merchant', answerMerchant(userId, merchant, month));
+  if (/(total|how much did i spend|how much have i spent|spending this|spend this|spent in|what did i spend)/.test(q)) return done('total', answerTotal(userId, month));
 
-  return fallback(userId, month);
+  return done('fallback', fallback(userId, month));
 }
 
 function fallback(userId, month) {
@@ -339,12 +348,17 @@ function fallback(userId, month) {
 
 // Retrieval block shared by the LLM backends. Capped tighter than a raw search so
 // the prompt stays small (local models slow down fast with context length).
-async function ragBlock(userId, message) {
+async function ragBlock(userId, message, ctx = {}) {
   try {
     const k = Math.max(5, Math.min(25, parseInt(process.env.RAG_LLM_ROWS || '20', 10)));
-    const res = await retrieve(userId, message, { defaultMonth: A.defaultMonth(userId), k });
-    return `\n\n--- ${formatForPrompt(res)}`;
-  } catch {
+    const res = await retrieve(userId, message, {
+      defaultMonth: A.defaultMonth(userId), k, ...ctx.retrieval, evalMode: !!ctx.evalMode,
+    });
+    const text = formatForPrompt(res);
+    if (ctx.trace) { ctx.trace.retrieval = summarizeRetrieval(res); ctx.trace.ragBlock = text; }
+    return `\n\n--- ${text}`;
+  } catch (e) {
+    if (ctx.evalMode) throw e; // an eval must not silently run without retrieval
     return '';
   }
 }
@@ -353,10 +367,10 @@ async function ragBlock(userId, message) {
  * Backend 2: local model via Ollama (streaming)
  * ------------------------------------------------------------------ */
 
-async function streamOllama(userId, systemBase, message, history, emit, abort) {
+async function streamOllama(userId, systemBase, message, history, emit, abort, ctx) {
   const url = (process.env.OLLAMA_URL || 'http://localhost:11434').replace(/\/$/, '');
   const model = process.env.OLLAMA_MODEL || 'llama3.1:8b';
-  const rag = await ragBlock(userId, message);
+  const rag = await ragBlock(userId, message, ctx);
   const timer = setTimeout(() => abort.abort(), 150_000);
   try {
     const res = await fetch(`${url}/api/chat`, {
@@ -407,11 +421,11 @@ async function streamOllama(userId, systemBase, message, history, emit, abort) {
  * Backend 3: Claude via the official SDK (streaming)
  * ------------------------------------------------------------------ */
 
-async function streamAnthropic(userId, systemBase, message, history, emit, abort) {
+async function streamAnthropic(userId, systemBase, message, history, emit, abort, ctx) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
-  const rag = await ragBlock(userId, message);
+  const rag = await ragBlock(userId, message, ctx);
   let any = false;
   const stream = client.messages.stream(
     {
@@ -447,12 +461,21 @@ function normalizeHistory(history) {
  *   {type:'delta', text}          repeatedly, incremental content
  *   {type:'note', text}           optional, e.g. a fallback notice
  * `opts.abortSignal` (AbortSignal) stops an in-flight LLM call early.
+ *
+ * Eval hooks (all optional, none change the SSE events):
+ *   opts.trace      object filled in as the question is answered: backend, route, retrieval, ragBlock…
+ *   opts.retrieval  { mode, weight, semMin, k } forwarded to retrieve()
+ *   opts.evalMode   no embedding writes; semantic failures, retrieval failures and LLM failures
+ *                   throw instead of silently falling back to a weaker path
  */
 async function askStream(userId, message, history, emit, opts = {}) {
   const backend = (process.env.AI_BACKEND || 'rules').toLowerCase();
   const summary = A.buildSummary(userId);
   const systemBase = `${SYSTEM_PROMPT}\n\n--- USER DATA SUMMARY ---\n${summary.text}`;
   const hist = normalizeHistory(history);
+  const ctx = { trace: opts.trace || null, retrieval: opts.retrieval || {}, evalMode: !!opts.evalMode };
+  if (ctx.trace) Object.assign(ctx.trace, { configuredBackend: backend, defaultMonth: A.defaultMonth(userId), retrievalOpts: ctx.retrieval });
+  const failEval = (why) => { if (ctx.evalMode) throw new Error(`evalMode: ${why}`); };
 
   let produced = false;
   const track = (ev) => { if (ev.type === 'delta') produced = true; emit(ev); };
@@ -463,7 +486,7 @@ async function askStream(userId, message, history, emit, opts = {}) {
     const onAbort = () => ctl.abort();
     if (opts.abortSignal) opts.abortSignal.addEventListener('abort', onAbort);
     try {
-      await fn(userId, systemBase, message, hist, track, ctl);
+      await fn(userId, systemBase, message, hist, track, ctl, ctx);
       return 'ok';
     } catch (e) {
       if (opts.abortSignal && opts.abortSignal.aborted) return 'aborted';
@@ -477,15 +500,21 @@ async function askStream(userId, message, history, emit, opts = {}) {
   if (backend === 'ollama') {
     const r = await runLLM(streamOllama, 'ollama', process.env.OLLAMA_MODEL || 'llama3.1:8b');
     if (r === 'ok' || r === 'partial' || r === 'aborted') return;
+    failEval(`ollama backend failed (${r})`);
+    if (ctx.trace) Object.assign(ctx.trace, { fallbackFrom: 'ollama', fallbackReason: r });
     emit({ type: 'meta', mode: 'rules' });
     emit({ type: 'note', text: `Local model unreachable (${r}). Showing built-in analysis.` });
   } else if (backend === 'anthropic') {
     if (!process.env.ANTHROPIC_API_KEY) {
+      failEval('AI_BACKEND=anthropic but ANTHROPIC_API_KEY is not set');
+      if (ctx.trace) Object.assign(ctx.trace, { fallbackFrom: 'anthropic', fallbackReason: 'no API key' });
       emit({ type: 'meta', mode: 'rules' });
       emit({ type: 'note', text: 'No ANTHROPIC_API_KEY set. Showing built-in analysis.' });
     } else {
       const r = await runLLM(streamAnthropic, 'anthropic', process.env.ANTHROPIC_MODEL || 'claude-sonnet-5');
       if (r === 'ok' || r === 'partial' || r === 'aborted') return;
+      failEval(`anthropic backend failed (${r})`);
+      if (ctx.trace) Object.assign(ctx.trace, { fallbackFrom: 'anthropic', fallbackReason: r });
       emit({ type: 'meta', mode: 'rules' });
       emit({ type: 'note', text: `Claude API error (${r}). Showing built-in analysis.` });
     }
@@ -494,21 +523,29 @@ async function askStream(userId, message, history, emit, opts = {}) {
   }
 
   // rules backend (default or fallback) — deterministic, sent whole
-  emit({ type: 'delta', text: await viaRules(userId, summary, message) });
+  emit({ type: 'delta', text: await viaRules(userId, summary, message, ctx) });
 }
 
 // Non-streaming convenience wrapper (kept for tests and any internal caller).
-async function ask(userId, message, history = []) {
+// Always returns `trace`: what was configured, which handler answered, and (when the
+// question went through retrieval) the retrieved ids, per-row scores, filters and counts.
+// `opts` takes the same eval hooks as askStream (retrieval, evalMode); trace is created here.
+async function ask(userId, message, history = [], opts = {}) {
   let reply = '';
   let mode = 'rules';
   let model;
   let note;
+  const trace = { question: message };
+  const t0 = Date.now();
   await askStream(userId, message, history, (ev) => {
     if (ev.type === 'meta') { mode = ev.mode; model = ev.model; }
     else if (ev.type === 'delta') reply += ev.text;
     else if (ev.type === 'note') note = ev.text;
-  });
-  return { reply, mode, model, note };
+  }, { ...opts, trace });
+  trace.backend = mode;
+  trace.model = model ?? null;
+  trace.elapsedMs = Date.now() - t0;
+  return { reply, mode, model, note, trace };
 }
 
 module.exports = { ask, askStream, SYSTEM_PROMPT, buildSummary: A.buildSummary };

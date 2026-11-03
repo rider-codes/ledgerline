@@ -130,8 +130,36 @@ function score(candidates, queryTerms) {
 
 /* ---------------- public ---------------- */
 
+const MODES = ['auto', 'lexical', 'semantic', 'hybrid'];
+
+/**
+ * retrieve(userId, query, opts)
+ *
+ * opts.k            rows to return (default RAG_MAX_ROWS)
+ * opts.defaultMonth YYYY-MM that "this month"/"last month" resolve against
+ * opts.mode         'auto'     (default) the app's own logic: structured if no free-text terms,
+ *                              else hybrid when embeddings work, else lexical
+ *                   'lexical'  SQL filters + BM25-lite only (never touches embeddings)
+ *                   'semantic' SQL filters + cosine only; rows below semMin are dropped
+ *                   'hybrid'   SQL filters + (1-weight)*lexical + weight*cosine, always embeds
+ *                   (opts.semantic === false is the legacy spelling of 'lexical')
+ * opts.weight       semantic weight for 'hybrid' (default RAG_SEMANTIC_WEIGHT)
+ * opts.semMin       cosine cut-off (default RAG_SEMANTIC_MIN)
+ * opts.evalMode     never write embeddings; throw if semantic search is needed but fails or
+ *                   any candidate lacks a current vector (no silent keyword-only fallback)
+ *
+ * Legacy result fields are unchanged. Added: requestedMode, scores[], matchCount,
+ * sqlTotals, candidateCount, qualifiedCount, truncatedCandidates, semantic, params.
+ * Note `totalSpend`/`totalIncome` are sums over the *returned* rows; `sqlTotals` is the
+ * true total over every row passing the structured filters.
+ */
 async function retrieve(userId, query, opts = {}) {
   const k = opts.k || MAX_ROWS();
+  const requested = opts.mode || (opts.semantic === false ? 'lexical' : 'auto');
+  if (!MODES.includes(requested)) throw new Error(`unknown retrieval mode "${requested}" (expected ${MODES.join('|')})`);
+  const evalMode = !!opts.evalMode;
+  const weight = opts.weight != null ? Math.max(0, Math.min(1, Number(opts.weight))) : embed.SEM_WEIGHT();
+  const semMin = opts.semMin != null ? Number(opts.semMin) : embed.SEM_MIN();
   const f = parseFilters(String(query || ''), opts.defaultMonth, userId);
 
   const where = ['user_id = ?'];
@@ -142,11 +170,28 @@ async function retrieve(userId, query, opts = {}) {
   if (f.minAmount != null) { where.push('amount >= ?'); args.push(f.minAmount); }
   if (f.maxAmount != null) { where.push('amount <= ?'); args.push(f.maxAmount); }
 
+  // ground truth for the structured filters, uncapped (the candidate list below is capped)
+  const agg = db
+    .prepare(
+      `SELECT COUNT(*) AS n,
+              COALESCE(SUM(CASE WHEN type = 'expense' THEN amount END), 0) AS spend,
+              COALESCE(SUM(CASE WHEN type = 'income' THEN amount END), 0) AS income
+       FROM transactions WHERE ${where.join(' AND ')}`
+    )
+    .get(...args);
+  const sqlTotals = { count: agg.n, spend: agg.spend, income: agg.income };
+
   const candidates = db
     .prepare(`SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE ${where.join(' AND ')} ORDER BY date DESC LIMIT 800`)
     .all(...args);
 
-  if (!candidates.length) return { rows: [], filters: f, count: 0, mode: 'none' };
+  const semantic = { requested: false, used: false, error: null };
+  const meta = {
+    requestedMode: requested, k, params: { weight, semMin }, matchCount: agg.n, sqlTotals,
+    candidateCount: candidates.length, truncatedCandidates: agg.n > candidates.length, semantic,
+  };
+
+  if (!candidates.length) return { rows: [], scores: [], filters: f, count: 0, mode: 'none', qualifiedCount: 0, ...meta };
 
   // free-text terms: drop $ and numbers first, then stopwords / consumed / anything with a digit
   const cleaned = String(query).replace(/\$/g, ' ').replace(/[0-9][0-9,.]*/g, ' ');
@@ -154,45 +199,100 @@ async function retrieve(userId, query, opts = {}) {
     tokenize(cleaned).filter((t) => t.length >= 3 && !/\d/.test(t) && !STOPWORDS.has(t) && !f.consumed.has(t))
   )];
 
-  let ranked;
+  // every ranked entry: { r, s (final), lex (raw BM25-lite|null), lexN, sem (cosine|null) }
+  let qualified;
   let mode = 'lexical';
-  if (!qTerms.length) {
+  const structuredPath = !qTerms.length && (requested === 'auto' || requested === 'lexical');
+  if (structuredPath) {
     // purely structured query — take the filtered rows newest-first
-    ranked = candidates.slice(0, k).map((r) => ({ r, s: 1 }));
+    qualified = candidates.map((r) => ({ r, s: 1, lex: null, lexN: null, sem: null, structured: true }));
     mode = 'structured';
   } else {
     const lex = score(candidates, qTerms); // [{ r, s }]
     const maxLex = Math.max(0, ...lex.map((x) => x.s));
+    const lexOnly = () => lex.filter((x) => x.s > 0)
+      .map(({ r, s }) => ({ r, s, lex: s, lexN: maxLex ? s / maxLex : 0, sem: null }))
+      .sort((a, b) => b.s - a.s);
 
+    // does this request want embeddings? 'auto' only asks when there are free-text terms
+    const wantSemantic = requested === 'semantic' || requested === 'hybrid' || (requested === 'auto' && qTerms.length > 0);
+    // in evalMode an explicit semantic/hybrid request must succeed; 'auto' must succeed only when embeddings are enabled
+    const strict = evalMode && (requested !== 'auto' || embed.enabled());
+    semantic.requested = wantSemantic;
     let sem = null;
-    if (opts.semantic !== false) {
-      try { sem = await embed.semanticScores(candidates, query); } catch { sem = null; }
+    if (wantSemantic) {
+      try {
+        sem = await embed.semanticScores(candidates, query, evalMode ? { readOnly: true, strict } : undefined);
+      } catch (e) {
+        if (strict) throw e;
+        semantic.error = e.message;
+        sem = null;
+      }
+      if (!sem && !semantic.error) semantic.error = 'semantic scores unavailable (embeddings disabled or unreachable)';
     }
 
-    if (sem) {
+    if (sem && requested === 'semantic') {
+      mode = 'semantic';
+      semantic.used = true;
+      qualified = lex
+        .map(({ r, s }) => {
+          const semV = Math.max(0, sem.get(r.id) ?? 0);
+          return { r, s: semV, lex: s, lexN: maxLex ? s / maxLex : 0, sem: semV };
+        })
+        .filter((x) => x.sem >= semMin)
+        .sort((a, b) => b.s - a.s);
+    } else if (sem) {
       mode = 'hybrid';
-      const w = embed.SEM_WEIGHT();
-      const min = embed.SEM_MIN();
-      ranked = lex
+      semantic.used = true;
+      qualified = lex
         .map(({ r, s }) => {
           const lexN = maxLex ? s / maxLex : 0;
           const semV = Math.max(0, sem.get(r.id) ?? 0);
-          const qualifies = s > 0 || semV >= min;
-          return { r, s: (1 - w) * lexN + w * semV, qualifies };
+          const qualifies = s > 0 || semV >= semMin;
+          return { r, s: (1 - weight) * lexN + weight * semV, lex: s, lexN, sem: semV, qualifies };
         })
         .filter((x) => x.qualifies)
-        .sort((a, b) => b.s - a.s)
-        .slice(0, k);
+        .sort((a, b) => b.s - a.s);
+    } else if (!qTerms.length) {
+      // semantic/hybrid requested, embeddings unavailable (non-eval only), and nothing lexical to rank on
+      qualified = candidates.map((r) => ({ r, s: 1, lex: null, lexN: null, sem: null, structured: true }));
+      mode = 'structured';
     } else {
-      ranked = lex.filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, k);
+      qualified = lexOnly();
     }
     // nothing matched: don't dump unrelated rows — return empty (honest)
   }
 
+  const ranked = qualified.slice(0, k);
   const rows = ranked.map((x) => x.r);
+  const scores = ranked.map((x) => ({
+    id: x.r.id,
+    final: x.structured ? null : x.s,
+    lex: x.lex, lexN: x.lexN, sem: x.sem,
+  }));
   const totalSpend = rows.filter((r) => r.type === 'expense').reduce((a, r) => a + r.amount, 0);
   const totalIncome = rows.filter((r) => r.type === 'income').reduce((a, r) => a + r.amount, 0);
-  return { rows, filters: f, count: rows.length, totalSpend, totalIncome, mode, truncated: candidates.length > rows.length && ranked.length === k };
+  return {
+    rows, scores, filters: f, count: rows.length, totalSpend, totalIncome, mode,
+    truncated: candidates.length > rows.length && ranked.length === k,
+    qualifiedCount: qualified.length,
+    ...meta,
+  };
+}
+
+// Compact, JSON-safe description of a retrieve() result for traces and eval logs.
+function summarizeRetrieval(res) {
+  return {
+    requestedMode: res.requestedMode, mode: res.mode, k: res.k, params: res.params,
+    filters: { ...res.filters, consumed: [...res.filters.consumed].sort() },
+    rowIds: res.rows.map((r) => r.id),
+    scores: res.scores,
+    shown: { count: res.count, spend: res.totalSpend ?? 0, income: res.totalIncome ?? 0 },
+    matchCount: res.matchCount, sqlTotals: res.sqlTotals,
+    candidateCount: res.candidateCount, qualifiedCount: res.qualifiedCount,
+    truncatedCandidates: res.truncatedCandidates, truncated: res.truncated ?? false,
+    semantic: res.semantic,
+  };
 }
 
 function formatForPrompt(result) {
@@ -210,7 +310,9 @@ function formatForPrompt(result) {
 
 // Deterministic answer for the rules backend when the question is a search.
 async function searchAnswer(userId, query, opts = {}) {
-  const res = await retrieve(userId, query, { ...opts, k: Math.min(20, opts.k || 20) });
+  const { trace, ...retrieveOpts } = opts;
+  const res = await retrieve(userId, query, { ...retrieveOpts, k: Math.min(20, opts.k || 20) });
+  if (trace) trace.retrieval = summarizeRetrieval(res);
   if (!res.rows.length) return `I couldn't find any transactions matching that.`;
   const parts = [];
   const bits = [];
@@ -224,4 +326,4 @@ async function searchAnswer(userId, query, opts = {}) {
   return parts.join('\n');
 }
 
-module.exports = { retrieve, formatForPrompt, searchAnswer, parseFilters };
+module.exports = { retrieve, formatForPrompt, searchAnswer, parseFilters, summarizeRetrieval, MODES };

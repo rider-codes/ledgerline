@@ -173,17 +173,43 @@ function status(userId) {
 /* ---------------- ranking hook used by retrieve.js ---------------- */
 
 // Given candidate rows + a query, return a Map(id -> semanticScore in [0,1]) or null.
-async function semanticScores(rows, query) {
-  if (!enabled() || !rows.length) return null;
+//
+// Default behaviour (the app): lazily embeds up to 80 missing rows, and returns null
+// (-> lexical only) if Ollama is unreachable.
+//
+// Eval behaviour: `readOnly` never writes to tx_embed; `strict` never returns null —
+// it throws if embeddings are disabled, Ollama fails, or ANY candidate row lacks a
+// current vector. A strict run therefore cannot silently degrade to keyword-only.
+async function semanticScores(rows, query, { readOnly = false, strict = false } = {}) {
+  if (!rows.length) return null;
+  if (!enabled()) {
+    if (strict) throw new Error('semantic search requested but embeddings are disabled (set EMBED_ENABLED=true)');
+    return null;
+  }
   let qVec;
   try {
-    await api.ensureIndexed(rows);
+    if (!readOnly) await api.ensureIndexed(rows);
     qVec = await api.embedQuery(query);
-  } catch {
+  } catch (e) {
+    if (strict) throw new Error(`semantic search failed: ${e.message}`);
     return null; // Ollama unreachable -> lexical only
   }
-  if (!qVec) return null;
+  if (!qVec) {
+    if (strict) throw new Error('semantic search failed: no query vector');
+    return null;
+  }
   const vecs = loadVectors(rows.map((r) => r.id));
+  if (strict) {
+    const missing = rows.filter((r) => {
+      const h = vecs.get(r.id);
+      return !h || h.hash !== docHash(r);
+    });
+    if (missing.length) {
+      throw new Error(`embedding index incomplete: ${missing.length} of ${rows.length} candidate rows have no current ${model()} vector`);
+    }
+    const bad = rows.find((r) => vecs.get(r.id).vec.length !== qVec.length);
+    if (bad) throw new Error(`embedding dimension mismatch (query ${qVec.length}, row ${bad.id} ${vecs.get(bad.id).vec.length})`);
+  }
   const out = new Map();
   for (const r of rows) {
     const h = vecs.get(r.id);
