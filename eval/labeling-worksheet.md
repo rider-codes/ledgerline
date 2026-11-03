@@ -272,6 +272,8 @@ Note:
 
 _exhaustive — every expense row in 2018-09 (24 rows)_
 
+> **Exhaustive for 2018-09.** This list contains every expense row in that month (24 rows), so nothing outside it can be relevant. Check every box carefully: an unticked box means "the question is not asking about this".
+
 - [ ] **1 month subscription** — 1 row, ₹199; e.g. 2018-09-19 ₹199 ⟨00⟩
 - [ ] **11 clothes ironing** — 1 row, ₹77; e.g. 2018-09-05 ₹77 ⟨01⟩
 - [ ] **1kg atta** — 1 row, ₹46; e.g. 2018-09-13 ₹46 ⟨02⟩
@@ -298,6 +300,8 @@ Note:
 ## D-05 · real · "travel to work in august"
 
 _exhaustive — every expense row in 2018-08 (56 rows)_
+
+> **Exhaustive for 2018-08.** This list contains every expense row in that month (56 rows), so nothing outside it can be relevant. Check every box carefully: an unticked box means "the question is not asking about this".
 
 - [ ] **1 month subscription** — 1 row, ₹199; e.g. 2018-08-19 ₹199 ⟨00⟩
 - [ ] **13 clothes ironing** — 1 row, ₹91; e.g. 2018-08-25 ₹91 ⟨01⟩
@@ -345,6 +349,8 @@ Note:
 ## D-06 · real · "doctor and medicine in june"
 
 _exhaustive — every expense row in 2018-06 (46 rows)_
+
+> **Exhaustive for 2018-06.** This list contains every expense row in that month (46 rows), so nothing outside it can be relevant. Check every box carefully: an unticked box means "the question is not asking about this".
 
 - [ ] **12 eggs** — 1 row, ₹84; e.g. 2018-06-11 ₹84 ⟨00⟩
 - [ ] **2 cups** — 1 row, ₹14; e.g. 2018-06-27 ₹14 ⟨01⟩

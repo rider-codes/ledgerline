@@ -298,6 +298,10 @@ async function buildPool(spec) {
     const p = pools[q.id];
     w.push(`## ${q.id} · ${q.dataset} · "${q.question}"`, '');
     w.push(`_${p.method}_`, '');
+    const ex = p.method.match(/^exhaustive — every expense row in (\d{4}-\d{2}) \((\d+) rows\)/);
+    if (ex) {
+      w.push(`> **Exhaustive for ${ex[1]}.** This list contains every expense row in that month (${ex[2]} rows), so nothing outside it can be relevant. Check every box carefully: an unticked box means "the question is not asking about this".`, '');
+    }
     p.groups.forEach((g, i) => {
       w.push(`- [ ] **${g.merchant}** — ${g.n} row${g.n > 1 ? 's' : ''}, ₹${g.total}; e.g. ${g.examples.join(', ')} ⟨${String(i).padStart(2, '0')}⟩`);
     });
