@@ -12,6 +12,20 @@ right user, and recomputes every `sql` / `analytics` / `goldSum` / `goldCount` s
 That database must be a **snapshot copy** — the validator refuses the live `data/finance.db`.
 Add `--final` to also require exactly 50 questions, a 35/15 tune/test split, and every question `confirmed`.
 
+## Building and labelling
+
+```bash
+node --experimental-sqlite eval/make-snapshot.js --embed     # copy of the live DB (read-only), embedded; git-ignored
+node --experimental-sqlite eval/build-questions.js           # questions.json + labeling-pools.json + labeling-worksheet.md
+# ... tick merchants in eval/labeling-worksheet.md ...
+node --experimental-sqlite eval/apply-labels.js              # ticks -> goldIds, recomputes answer.expected
+node --experimental-sqlite eval/validate-questions.js eval/questions.json --db eval/snapshots/eval.db --final
+```
+
+`build-questions.js` holds every question spec; gold ids and `expected` values are regenerated from SQL / `analytics.js`.
+It refuses to overwrite confirmed labels or ticked boxes unless `--force` is passed. All eval scripts refuse the live DB.
+Splits are seeded (`meta.splitSeed`) and fixed before any retrieval number exists.
+
 ## File shape
 
 ```json
