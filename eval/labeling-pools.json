@@ -30266,585 +30266,293 @@
     ]
   },
   "D-06": {
-    "method": "exhaustive — every expense row in 2018-06 (46 rows)",
-    "scopeRows": 46,
+    "method": "pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 80 expense rows in 2018-07",
+    "scopeRows": 80,
     "scopeIds": {
-      "Data booster pack": [
-        4376,
-        4380,
-        4382,
-        4384,
-        4385
+      "2 Pvr": [
+        4427
       ],
-      "Sofa covers": [
-        4377
+      "2 Place 2 to Place 1 - Shree Sharma Travels": [
+        4428
       ],
-      "12 eggs": [
-        4378
+      "Vadapav": [
+        4429
       ],
-      "Marathon": [
-        4379
+      "undergarments pair of Jockey": [
+        4430
       ],
-      "2CC Place 2 to DDR Spl Train": [
-        4381
-      ],
-      "Pocket money": [
-        4383
-      ],
-      "Annual recharge": [
-        4386
-      ],
-      "auto": [
-        4387
-      ],
-      "2 Place 0 to Current Residence": [
-        4388,
-        4397
-      ],
-      "Bread": [
-        4389
+      "clothes ironing": [
+        4431
       ],
       "milk 1lit": [
-        4390
-      ],
-      "Suppliemnts": [
-        4391
-      ],
-      "2 Place 5 to Place 0": [
-        4392
-      ],
-      "Permanent Residence - Tata Play recharge": [
-        4393
-      ],
-      "2 Vadapav 2 samosa pav": [
-        4394
-      ],
-      "Home Food Delivery": [
-        4395,
-        4415
-      ],
-      "Smart point": [
-        4396
+        4432
       ],
       "Supermart": [
-        4398
+        4433,
+        4485,
+        4497
       ],
-      "Aqugurad water purifier": [
-        4399
+      "Place 1 bridge to Current Residence 2 seats": [
+        4434
       ],
-      "Umbrella handle repair": [
-        4400
+      "2 Place 6 Stand to MS": [
+        4435
       ],
-      "Place 0 to Place 4 return": [
-        4401
+      "Face towels + shampoo": [
+        4436
       ],
-      "2 cutting chai": [
-        4402
+      "2 Place 1 to mall": [
+        4437
       ],
-      "Bhaji + vadapav": [
-        4403
+      "Current Residence to Place 1 bus stop highway": [
+        4438
       ],
-      "Planetarium": [
-        4404
+      "maid": [
+        4439
       ],
-      "2 cups": [
-        4406
+      "Half lit milk": [
+        4440
       ],
-      "Mobile cover real mi note pro": [
-        4407
+      "Current Residence - Tata Play recharge": [
+        4441,
+        4489
       ],
-      "Shopping at Alfa": [
-        4408
+      "Doctor Fees": [
+        4443
       ],
-      "Mouse pad": [
-        4409
+      "Shaving": [
+        4444
       ],
-      "Purse": [
-        4410
+      "Pocket money": [
+        4445,
+        4494
       ],
-      "Rainy season chappal": [
-        4411
+      "2 Thyroid (1000) + cholesterol (220) + uric acid (220)": [
+        4446
       ],
-      "Place P station to Alfa market": [
-        4412
+      "Terminal 1 to Terminal 2": [
+        4447
       ],
-      "2 Place 0 to Place P return": [
-        4413
+      "cutting chai": [
+        4448
       ],
-      "2 Current Residence to Place 0": [
-        4414
+      "Current Residence to Place 0": [
+        4449,
+        4500
       ],
-      "Bhaji + vadapav + kachori+ tea": [
-        4416
+      "Place 0 to Place P": [
+        4450
       ],
-      "Vadala road to Nehru Planetarium": [
-        4417
+      "At restaurant": [
+        4451,
+        4454
       ],
-      "Mast & Harbour Slides": [
-        4418
+      "Park Inn Goa": [
+        4452
       ],
-      "Tulsi plant+ pot": [
-        4420
+      "Place 4 to Place 0": [
+        4453
       ],
-      "Math tap repair": [
-        4421
+      "Mahanagar Gas": [
+        4455
       ],
-      "3 bulbs 3 pencil cells": [
-        4422
+      "Ola cab - eye institute to Current Residence CHS": [
+        4456,
+        4468,
+        4482
       ],
-      "Aqugurad PRV": [
-        4423
+      "3 cutting chai": [
+        4457
+      ],
+      "eye drop": [
+        4458
+      ],
+      "Hospital consultation": [
+        4459
+      ],
+      "Ola cab - Current Residence CHS to eye institute": [
+        4460
+      ],
+      "To and Fro Cab Fare Contribution": [
+        4461
+      ],
+      "3.4 Lit Petrol": [
+        4462
+      ],
+      "Toast packet": [
+        4463,
+        4488,
+        4491
+      ],
+      "Shev bhaji sev pav kg": [
+        4464
+      ],
+      "2 bread packets": [
+        4466
+      ],
+      "6 eggs": [
+        4467
+      ],
+      "Cataract Medicine": [
+        4469,
+        4483,
+        4484
+      ],
+      "CA - income tax filing": [
+        4470
+      ],
+      "fruits": [
+        4471
+      ],
+      "vegetables": [
+        4472,
+        4496
+      ],
+      "4 kachori": [
+        4473
+      ],
+      "12 clothes ironing": [
+        4474
+      ],
+      "Sony WI-C100 earphones wireless": [
+        4475
+      ],
+      "7 kachori": [
+        4476
+      ],
+      "M D sure 4kg atta": [
+        4477
+      ],
+      "Dahi 4 packets": [
+        4478
+      ],
+      "chocobar": [
+        4479
+      ],
+      "potato 1kg": [
+        4480
+      ],
+      "onion 1 kg": [
+        4481
+      ],
+      "Khajur pav kg": [
+        4486
+      ],
+      "2 Bhajipav + 2 vadapav": [
+        4487
+      ],
+      "4 plates poha": [
+        4490
+      ],
+      "Demat account charges": [
+        4493
+      ],
+      "2 Inox": [
+        4495
+      ],
+      "Paneer pizza": [
+        4498
+      ],
+      "Decathlon Place A to Place A station": [
+        4499
+      ],
+      "2 Place 0 to Place A returns": [
+        4501
+      ],
+      "Medu vada 3 plate": [
+        4502
+      ],
+      "Glucose D(50) + flora bc (40)+cyra 20(10)": [
+        4503
+      ],
+      "Medicine": [
+        4504
+      ],
+      "Catering Service": [
+        4505
+      ],
+      "1 plates poha": [
+        4506
+      ],
+      "13 clothes ironing": [
+        4507
+      ],
+      "July salary": [
+        4508
+      ],
+      "10 melody": [
+        4509
       ]
     },
     "groups": [
       {
-        "merchant": "12 eggs",
-        "n": 1,
-        "total": 84,
+        "merchant": "Cataract Medicine",
+        "n": 3,
+        "total": 2493,
         "ids": [
-          4378
+          4469,
+          4483,
+          4484
         ],
         "examples": [
-          "2018-06-11 ₹84"
+          "2018-07-13 ₹1358",
+          "2018-07-20 ₹87",
+          "2018-07-20 ₹1048"
         ]
       },
       {
-        "merchant": "2 cups",
-        "n": 1,
-        "total": 14,
-        "ids": [
-          4406
-        ],
-        "examples": [
-          "2018-06-27 ₹14"
-        ]
-      },
-      {
-        "merchant": "2 Current Residence to Place 0",
-        "n": 1,
-        "total": 30,
-        "ids": [
-          4414
-        ],
-        "examples": [
-          "2018-06-27 ₹30"
-        ]
-      },
-      {
-        "merchant": "2 cutting chai",
-        "n": 1,
-        "total": 20,
-        "ids": [
-          4402
-        ],
-        "examples": [
-          "2018-06-26 ₹20"
-        ]
-      },
-      {
-        "merchant": "2 Place 0 to Current Residence",
-        "n": 2,
-        "total": 70,
-        "ids": [
-          4388,
-          4397
-        ],
-        "examples": [
-          "2018-06-24 ₹40",
-          "2018-06-26 ₹30"
-        ]
-      },
-      {
-        "merchant": "2 Place 0 to Place P return",
-        "n": 1,
-        "total": 80,
-        "ids": [
-          4413
-        ],
-        "examples": [
-          "2018-06-27 ₹80"
-        ]
-      },
-      {
-        "merchant": "2 Place 5 to Place 0",
-        "n": 1,
-        "total": 30,
-        "ids": [
-          4392
-        ],
-        "examples": [
-          "2018-06-24 ₹30"
-        ]
-      },
-      {
-        "merchant": "2 Vadapav 2 samosa pav",
-        "n": 1,
-        "total": 60,
-        "ids": [
-          4394
-        ],
-        "examples": [
-          "2018-06-24 ₹60"
-        ]
-      },
-      {
-        "merchant": "2CC Place 2 to DDR Spl Train",
-        "n": 1,
-        "total": 1213.6,
-        "ids": [
-          4381
-        ],
-        "examples": [
-          "2018-06-15 ₹1213.6"
-        ]
-      },
-      {
-        "merchant": "3 bulbs 3 pencil cells",
-        "n": 1,
-        "total": 270,
-        "ids": [
-          4422
-        ],
-        "examples": [
-          "2018-06-29 ₹270"
-        ]
-      },
-      {
-        "merchant": "Annual recharge",
-        "n": 1,
-        "total": 2545,
-        "ids": [
-          4386
-        ],
-        "examples": [
-          "2018-06-23 ₹2545"
-        ]
-      },
-      {
-        "merchant": "Aqugurad PRV",
-        "n": 1,
-        "total": 1200,
-        "ids": [
-          4423
-        ],
-        "examples": [
-          "2018-06-30 ₹1200"
-        ]
-      },
-      {
-        "merchant": "Aqugurad water purifier",
-        "n": 1,
-        "total": 13050,
-        "ids": [
-          4399
-        ],
-        "examples": [
-          "2018-06-26 ₹13050"
-        ]
-      },
-      {
-        "merchant": "auto",
-        "n": 1,
-        "total": 30,
-        "ids": [
-          4387
-        ],
-        "examples": [
-          "2018-06-23 ₹30"
-        ]
-      },
-      {
-        "merchant": "Bhaji + vadapav",
-        "n": 1,
-        "total": 30,
-        "ids": [
-          4403
-        ],
-        "examples": [
-          "2018-06-26 ₹30"
-        ]
-      },
-      {
-        "merchant": "Bhaji + vadapav + kachori+ tea",
-        "n": 1,
-        "total": 70,
-        "ids": [
-          4416
-        ],
-        "examples": [
-          "2018-06-28 ₹70"
-        ]
-      },
-      {
-        "merchant": "Bread",
-        "n": 1,
-        "total": 18,
-        "ids": [
-          4389
-        ],
-        "examples": [
-          "2018-06-24 ₹18"
-        ]
-      },
-      {
-        "merchant": "Data booster pack",
-        "n": 5,
-        "total": 903,
-        "ids": [
-          4376,
-          4380,
-          4382,
-          4384,
-          4385
-        ],
-        "examples": [
-          "2018-06-09 ₹667",
-          "2018-06-15 ₹15",
-          "2018-06-18 ₹15"
-        ]
-      },
-      {
-        "merchant": "Home Food Delivery",
-        "n": 2,
-        "total": 775,
-        "ids": [
-          4395,
-          4415
-        ],
-        "examples": [
-          "2018-06-25 ₹320",
-          "2018-06-28 ₹455"
-        ]
-      },
-      {
-        "merchant": "Marathon",
-        "n": 1,
-        "total": 1407,
-        "ids": [
-          4379
-        ],
-        "examples": [
-          "2018-06-11 ₹1407"
-        ]
-      },
-      {
-        "merchant": "Mast & Harbour Slides",
-        "n": 1,
-        "total": 64.82,
-        "ids": [
-          4418
-        ],
-        "examples": [
-          "2018-06-28 ₹64.82"
-        ]
-      },
-      {
-        "merchant": "Math tap repair",
-        "n": 1,
-        "total": 50,
-        "ids": [
-          4421
-        ],
-        "examples": [
-          "2018-06-29 ₹50"
-        ]
-      },
-      {
-        "merchant": "milk 1lit",
-        "n": 1,
-        "total": 72,
-        "ids": [
-          4390
-        ],
-        "examples": [
-          "2018-06-24 ₹72"
-        ]
-      },
-      {
-        "merchant": "Mobile cover real mi note pro",
+        "merchant": "Doctor Fees",
         "n": 1,
         "total": 100,
         "ids": [
-          4407
+          4443
         ],
         "examples": [
-          "2018-06-27 ₹100"
+          "2018-07-04 ₹100"
         ]
       },
       {
-        "merchant": "Mouse pad",
+        "merchant": "eye drop",
         "n": 1,
-        "total": 100,
+        "total": 153,
         "ids": [
-          4409
+          4458
         ],
         "examples": [
-          "2018-06-27 ₹100"
+          "2018-07-08 ₹153"
         ]
       },
       {
-        "merchant": "Permanent Residence - Tata Play recharge",
+        "merchant": "Hospital consultation",
         "n": 1,
-        "total": 157,
+        "total": 500,
         "ids": [
-          4393
+          4459
         ],
         "examples": [
-          "2018-06-24 ₹157"
+          "2018-07-08 ₹500"
         ]
       },
       {
-        "merchant": "Place 0 to Place 4 return",
-        "n": 1,
-        "total": 20,
-        "ids": [
-          4401
-        ],
-        "examples": [
-          "2018-06-26 ₹20"
-        ]
-      },
-      {
-        "merchant": "Place P station to Alfa market",
-        "n": 1,
-        "total": 25,
-        "ids": [
-          4412
-        ],
-        "examples": [
-          "2018-06-27 ₹25"
-        ]
-      },
-      {
-        "merchant": "Planetarium",
-        "n": 1,
-        "total": 308.85,
-        "ids": [
-          4404
-        ],
-        "examples": [
-          "2018-06-27 ₹308.85"
-        ]
-      },
-      {
-        "merchant": "Pocket money",
+        "merchant": "July salary",
         "n": 1,
         "total": 2000,
         "ids": [
-          4383
+          4508
         ],
         "examples": [
-          "2018-06-19 ₹2000"
+          "2018-07-31 ₹2000"
         ]
       },
       {
-        "merchant": "Purse",
+        "merchant": "Medicine",
         "n": 1,
-        "total": 450,
+        "total": 132,
         "ids": [
-          4410
+          4504
         ],
         "examples": [
-          "2018-06-27 ₹450"
-        ]
-      },
-      {
-        "merchant": "Rainy season chappal",
-        "n": 1,
-        "total": 550,
-        "ids": [
-          4411
-        ],
-        "examples": [
-          "2018-06-27 ₹550"
-        ]
-      },
-      {
-        "merchant": "Shopping at Alfa",
-        "n": 1,
-        "total": 4720,
-        "ids": [
-          4408
-        ],
-        "examples": [
-          "2018-06-27 ₹4720"
-        ]
-      },
-      {
-        "merchant": "Smart point",
-        "n": 1,
-        "total": 2074,
-        "ids": [
-          4396
-        ],
-        "examples": [
-          "2018-06-25 ₹2074"
-        ]
-      },
-      {
-        "merchant": "Sofa covers",
-        "n": 1,
-        "total": 3000,
-        "ids": [
-          4377
-        ],
-        "examples": [
-          "2018-06-10 ₹3000"
-        ]
-      },
-      {
-        "merchant": "Supermart",
-        "n": 1,
-        "total": 1990,
-        "ids": [
-          4398
-        ],
-        "examples": [
-          "2018-06-26 ₹1990"
-        ]
-      },
-      {
-        "merchant": "Suppliemnts",
-        "n": 1,
-        "total": 211.75,
-        "ids": [
-          4391
-        ],
-        "examples": [
-          "2018-06-24 ₹211.75"
-        ]
-      },
-      {
-        "merchant": "Tulsi plant+ pot",
-        "n": 1,
-        "total": 70,
-        "ids": [
-          4420
-        ],
-        "examples": [
-          "2018-06-29 ₹70"
-        ]
-      },
-      {
-        "merchant": "Umbrella handle repair",
-        "n": 1,
-        "total": 70,
-        "ids": [
-          4400
-        ],
-        "examples": [
-          "2018-06-26 ₹70"
-        ]
-      },
-      {
-        "merchant": "Vadala road to Nehru Planetarium",
-        "n": 1,
-        "total": 228,
-        "ids": [
-          4417
-        ],
-        "examples": [
-          "2018-06-28 ₹228"
+          "2018-07-30 ₹132"
         ]
       }
     ]

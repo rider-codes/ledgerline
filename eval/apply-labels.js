@@ -65,7 +65,10 @@ for (const sec of sections) {
   }
   const scopeKeys = Object.keys(pool.scopeIds);
   for (const e of extras) {
-    const key = scopeKeys.find((k) => k.toLowerCase() === e.toLowerCase());
+    // exact text first; fall back to a case-insensitive match only when it is unambiguous
+    const loose = scopeKeys.filter((k) => k.toLowerCase() === e.toLowerCase());
+    const key = scopeKeys.includes(e) ? e : loose.length === 1 ? loose[0] : null;
+    if (!key && loose.length > 1) { problems.push(`${sec.id}: "Also include" merchant "${e}" matches several texts by case (${loose.join(' / ')}); use the exact one`); continue; }
     if (!key) { problems.push(`${sec.id}: "Also include" merchant "${e}" is not an expense merchant text in scope`); continue; }
     pool.scopeIds[key].forEach((x) => ids.add(x));
     used.push(key);

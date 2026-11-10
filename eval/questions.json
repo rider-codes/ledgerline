@@ -663,8 +663,52 @@
       "question": "what did I spend on takeout?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2215,
+          2230,
+          2243,
+          2248,
+          2250,
+          2268,
+          2273,
+          2276,
+          2287,
+          2292,
+          2315,
+          2317,
+          2320,
+          2339,
+          2349,
+          2354,
+          2361,
+          2368,
+          2380,
+          2381,
+          2386,
+          2388,
+          2394,
+          2402,
+          2403,
+          2407,
+          2408,
+          2416,
+          2419,
+          2420,
+          2425,
+          2431,
+          2432,
+          2443,
+          2446,
+          2447,
+          2448,
+          2450,
+          2451,
+          2462,
+          2464,
+          2465,
+          2474
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2215,
           2243,
@@ -724,14 +768,15 @@
           2473,
           2478
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (5 merchant texts match; the 5 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 5 merchant text(s) ticked. Pool: pooled — hand-written keyword net (5 merchant texts match; the 5 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 1013.26
       }
     },
     {
@@ -742,8 +787,86 @@
       "question": "how much did I spend on getting around town?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2212,
+          2213,
+          2220,
+          2224,
+          2228,
+          2231,
+          2232,
+          2233,
+          2236,
+          2239,
+          2244,
+          2245,
+          2247,
+          2249,
+          2254,
+          2255,
+          2256,
+          2258,
+          2260,
+          2262,
+          2265,
+          2272,
+          2274,
+          2277,
+          2279,
+          2280,
+          2283,
+          2288,
+          2293,
+          2302,
+          2303,
+          2304,
+          2307,
+          2313,
+          2314,
+          2316,
+          2322,
+          2327,
+          2328,
+          2334,
+          2337,
+          2343,
+          2344,
+          2345,
+          2350,
+          2355,
+          2356,
+          2359,
+          2362,
+          2364,
+          2370,
+          2374,
+          2377,
+          2378,
+          2389,
+          2391,
+          2398,
+          2400,
+          2404,
+          2414,
+          2417,
+          2421,
+          2426,
+          2427,
+          2433,
+          2436,
+          2438,
+          2439,
+          2444,
+          2452,
+          2454,
+          2455,
+          2456,
+          2457,
+          2459,
+          2460,
+          2470
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2212,
           2224,
@@ -823,14 +946,15 @@
           2455,
           2460
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 4 merchant text(s) ticked. Pool: pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 1443.19
       }
     },
     {
@@ -841,8 +965,27 @@
       "question": "what do I pay for streaming and media?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2216,
+          2218,
+          2222,
+          2229,
+          2271,
+          2275,
+          2281,
+          2290,
+          2329,
+          2331,
+          2335,
+          2340,
+          2396,
+          2401,
+          2405,
+          2411,
+          2472,
+          2477
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2229,
           2290,
@@ -875,14 +1018,15 @@
           2434,
           2466
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 4 merchant text(s) ticked. Note: Comcast is a utility; Ticketmaster is event ticketing, not streaming/media.. Pool: pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 200.16
       }
     },
     {
@@ -893,8 +1037,14 @@
       "question": "how much goes on gym and fitness?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2214,
+          2266,
+          2326,
+          2395,
+          2469
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2347,
           2357,
@@ -928,14 +1078,15 @@
           2473,
           2478
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (2 merchant texts match; the 2 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 1 merchant text(s) ticked. Note: REI is a general outdoor retailer — unticked.. Pool: pooled — hand-written keyword net (2 merchant texts match; the 2 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 124.95
       }
     },
     {
@@ -946,8 +1097,20 @@
       "question": "what are my medical and pharmacy costs?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2217,
+          2270,
+          2305,
+          2319,
+          2347,
+          2357,
+          2424,
+          2437,
+          2441,
+          2442,
+          2479
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2347,
           2357,
@@ -988,14 +1151,15 @@
           2473,
           2478
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (3 merchant texts match; the 3 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 3 merchant text(s) ticked. Pool: pooled — hand-written keyword net (3 merchant texts match; the 3 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 341.56
       }
     },
     {
@@ -1006,8 +1170,36 @@
       "question": "how much did I spend on coffee shop visits?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2211,
+          2219,
+          2227,
+          2253,
+          2257,
+          2259,
+          2261,
+          2296,
+          2301,
+          2310,
+          2312,
+          2325,
+          2333,
+          2342,
+          2353,
+          2358,
+          2376,
+          2383,
+          2397,
+          2410,
+          2415,
+          2430,
+          2435,
+          2453,
+          2461,
+          2463,
+          2476
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2333,
           2342,
@@ -1037,14 +1229,15 @@
           2410,
           2435
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (3 merchant texts match; the 3 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 3 merchant text(s) ticked. Note: Tartine is a bakery café; ticked as a coffee-shop visit.. Pool: pooled — hand-written keyword net (3 merchant texts match; the 3 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 262 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 256.29
       }
     },
     {
@@ -1055,8 +1248,112 @@
       "question": "what did I spend on chai and snacks?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2489,
+          2494,
+          2499,
+          2507,
+          2515,
+          2521,
+          2527,
+          2532,
+          2543,
+          2544,
+          2545,
+          2551,
+          2566,
+          2572,
+          2576,
+          2577,
+          2587,
+          2591,
+          2592,
+          2600,
+          2615,
+          2616,
+          2623,
+          2627,
+          2628,
+          2653,
+          2655,
+          2663,
+          2689,
+          2771,
+          3035,
+          3068,
+          3152,
+          3200,
+          3317,
+          3326,
+          3361,
+          3370,
+          3382,
+          3384,
+          3388,
+          3390,
+          3397,
+          3400,
+          3401,
+          3404,
+          3406,
+          3421,
+          3434,
+          3453,
+          3456,
+          3507,
+          3540,
+          3545,
+          3553,
+          3554,
+          3752,
+          3753,
+          3770,
+          3799,
+          3845,
+          3874,
+          3917,
+          3940,
+          3951,
+          3956,
+          3968,
+          3976,
+          4017,
+          4019,
+          4076,
+          4079,
+          4095,
+          4103,
+          4113,
+          4124,
+          4128,
+          4137,
+          4153,
+          4160,
+          4165,
+          4204,
+          4205,
+          4213,
+          4235,
+          4275,
+          4278,
+          4314,
+          4336,
+          4402,
+          4429,
+          4448,
+          4457,
+          4463,
+          4479,
+          4488,
+          4491,
+          4519,
+          4533,
+          4547,
+          4562,
+          4567,
+          4580
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           3068,
           3874,
@@ -1162,14 +1459,15 @@
           4113,
           4429
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (96 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 13 merchant text(s) ticked. Note: `tea` and `Tea` are separate exact texts — both ticked.. Pool: pooled — hand-written keyword net (96 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 2363
       }
     },
     {
@@ -1180,8 +1478,100 @@
       "question": "how much did I spend on phone and TV recharges?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2732,
+          2758,
+          2779,
+          2783,
+          2818,
+          2826,
+          2835,
+          2842,
+          2846,
+          2850,
+          2855,
+          2860,
+          2862,
+          2864,
+          2870,
+          2871,
+          2872,
+          2878,
+          2884,
+          2892,
+          2896,
+          2897,
+          2898,
+          2900,
+          2901,
+          2902,
+          2907,
+          2910,
+          2920,
+          2925,
+          2935,
+          2960,
+          3009,
+          3017,
+          3018,
+          3034,
+          3044,
+          3056,
+          3062,
+          3098,
+          3120,
+          3121,
+          3124,
+          3137,
+          3140,
+          3163,
+          3166,
+          3181,
+          3230,
+          3256,
+          3302,
+          3381,
+          3573,
+          3617,
+          3660,
+          3729,
+          3767,
+          3812,
+          3813,
+          3821,
+          3823,
+          3829,
+          3886,
+          3932,
+          3979,
+          3980,
+          3989,
+          4059,
+          4139,
+          4232,
+          4301,
+          4313,
+          4350,
+          4361,
+          4363,
+          4367,
+          4368,
+          4372,
+          4376,
+          4380,
+          4382,
+          4384,
+          4385,
+          4386,
+          4393,
+          4441,
+          4489,
+          4542,
+          4590,
+          4595,
+          4597
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           3573,
           4386,
@@ -1280,14 +1670,15 @@
           3302,
           3381
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (21 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 12 merchant text(s) ticked. Note: internet renewals unticked (broadband, not phone/TV).. Pool: pooled — hand-written keyword net (21 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 35429
       }
     },
     {
@@ -1298,8 +1689,178 @@
       "question": "what did I spend on daily milk?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2533,
+          2534,
+          2541,
+          2547,
+          2552,
+          2559,
+          2563,
+          2573,
+          2594,
+          2607,
+          2619,
+          2621,
+          2658,
+          2668,
+          2674,
+          2690,
+          2696,
+          2698,
+          2702,
+          2704,
+          2706,
+          2710,
+          2711,
+          2713,
+          2715,
+          2718,
+          2926,
+          2928,
+          2931,
+          2938,
+          3088,
+          3097,
+          3101,
+          3130,
+          3133,
+          3136,
+          3138,
+          3150,
+          3219,
+          3224,
+          3231,
+          3236,
+          3275,
+          3277,
+          3279,
+          3306,
+          3308,
+          3321,
+          3323,
+          3333,
+          3346,
+          3411,
+          3427,
+          3430,
+          3442,
+          3454,
+          3463,
+          3471,
+          3477,
+          3483,
+          3484,
+          3488,
+          3489,
+          3496,
+          3498,
+          3505,
+          3509,
+          3530,
+          3537,
+          3552,
+          3555,
+          3570,
+          3574,
+          3576,
+          3577,
+          3583,
+          3596,
+          3614,
+          3618,
+          3633,
+          3635,
+          3640,
+          3652,
+          3702,
+          3704,
+          3726,
+          3738,
+          3743,
+          3831,
+          3840,
+          3842,
+          3865,
+          3873,
+          3879,
+          3884,
+          3887,
+          3907,
+          3915,
+          3918,
+          3930,
+          3935,
+          3947,
+          3952,
+          3965,
+          3971,
+          3978,
+          3997,
+          4004,
+          4016,
+          4025,
+          4028,
+          4046,
+          4051,
+          4064,
+          4066,
+          4072,
+          4081,
+          4088,
+          4100,
+          4108,
+          4110,
+          4122,
+          4129,
+          4136,
+          4145,
+          4147,
+          4154,
+          4162,
+          4174,
+          4184,
+          4187,
+          4188,
+          4191,
+          4196,
+          4198,
+          4212,
+          4222,
+          4231,
+          4237,
+          4249,
+          4258,
+          4262,
+          4264,
+          4276,
+          4289,
+          4292,
+          4298,
+          4304,
+          4315,
+          4317,
+          4324,
+          4331,
+          4333,
+          4337,
+          4345,
+          4390,
+          4432,
+          4440,
+          4544,
+          4548,
+          4549,
+          4556,
+          4563,
+          4568,
+          4575,
+          4581,
+          4584,
+          4586,
+          4589
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           3831,
           3840,
@@ -1470,14 +2031,15 @@
           2715,
           2718
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (28 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 13 merchant text(s) ticked. Note: mixed row `1.5 lit milk + 3 cold drink + 1 khari + 1 bread` kept (milk is the headline item); `Half lit Varna milk` added via Also include.. Pool: pooled — hand-written keyword net (28 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 9299
       }
     },
     {
@@ -1488,8 +2050,62 @@
       "question": "how much did I spend on street food and sweets?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2830,
+          2838,
+          2932,
+          2952,
+          2988,
+          3068,
+          3095,
+          3134,
+          3160,
+          3167,
+          3204,
+          3211,
+          3216,
+          3223,
+          3238,
+          3299,
+          3311,
+          3317,
+          3357,
+          3420,
+          3421,
+          3434,
+          3453,
+          3456,
+          3458,
+          3492,
+          3507,
+          3539,
+          3540,
+          3554,
+          3752,
+          3770,
+          3799,
+          3856,
+          3874,
+          3940,
+          3968,
+          3976,
+          4019,
+          4076,
+          4113,
+          4137,
+          4204,
+          4213,
+          4235,
+          4309,
+          4322,
+          4344,
+          4403,
+          4429,
+          4464,
+          4473,
+          4580
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           3068,
           3874,
@@ -1550,14 +2166,15 @@
           3211,
           3223
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (75 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 15 merchant text(s) ticked. Note: mixed rows unticked (whole-row amounts would overstate sweets/street-food spend). `sugar + biscuits` kept (both sweets/snack staples).. Pool: pooled — hand-written keyword net (75 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 1603
       }
     },
     {
@@ -1568,8 +2185,38 @@
       "question": "what did I spend on doctor and medicine?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2630,
+          2639,
+          2882,
+          2946,
+          2959,
+          2973,
+          3037,
+          3080,
+          3112,
+          3271,
+          3274,
+          3592,
+          3593,
+          3597,
+          3611,
+          3733,
+          3734,
+          3740,
+          3744,
+          3772,
+          3787,
+          4031,
+          4170,
+          4443,
+          4459,
+          4469,
+          4483,
+          4484,
+          4504
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           3772,
           3611,
@@ -1603,14 +2250,15 @@
           4031,
           4170
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (26 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 12 merchant text(s) ticked. Note: hospital transport rows unticked (travel, not doctor/medicine). `Tablet` and `biscuits + medicine` added via Also include.. Pool: pooled — hand-written keyword net (26 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 11640
       }
     },
     {
@@ -1621,8 +2269,36 @@
       "question": "how much did I spend on personal grooming?",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2516,
+          2546,
+          2642,
+          2767,
+          2810,
+          2839,
+          2875,
+          2909,
+          2944,
+          2970,
+          3108,
+          3109,
+          3245,
+          3398,
+          3410,
+          3482,
+          3499,
+          3517,
+          3672,
+          3761,
+          3922,
+          4135,
+          4334,
+          4364,
+          4373,
+          4444,
+          4525
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2970,
           3499,
@@ -1653,14 +2329,15 @@
           4371,
           4364
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (12 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 12 merchant text(s) ticked. Note: `Soap + dahya pav kg` unticked (mostly food); `shaving`/`Shaving` are separate texts — both ticked. `Himalaya soap(30) + Sofie (59) + kitkat (10)` kept (mostly grooming).. Pool: pooled — hand-written keyword net (12 merchant texts match; the 12 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 1996 expense rows."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 6007
       }
     },
     {
@@ -1671,8 +2348,17 @@
       "question": "coffee shops in august",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2397,
+          2410,
+          2415,
+          2430,
+          2435,
+          2453,
+          2461,
+          2463
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2422,
           2423,
@@ -1704,14 +2390,15 @@
           2410,
           2435
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (3 merchant texts match; the 3 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 73 expense rows in 2026-08. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 3 merchant text(s) ticked. Note: Tartine ticked as a bakery café.. Pool: pooled — hand-written keyword net (3 merchant texts match; the 3 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 73 expense rows in 2026-08."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 66.03
       }
     },
     {
@@ -1722,8 +2409,25 @@
       "question": "ride sharing and transit in july",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2327,
+          2337,
+          2343,
+          2344,
+          2345,
+          2350,
+          2355,
+          2356,
+          2359,
+          2362,
+          2364,
+          2370,
+          2374,
+          2377,
+          2389,
+          2391
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2327,
           2337,
@@ -1748,14 +2452,15 @@
           2372,
           2382
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (2 merchant texts match; the 2 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 67 expense rows in 2026-07. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 2 merchant text(s) ticked. Pool: pooled — hand-written keyword net (2 merchant texts match; the 2 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 67 expense rows in 2026-07."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 128.13
       }
     },
     {
@@ -1766,8 +2471,12 @@
       "question": "online shopping in august",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          2422,
+          2423,
+          2440
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           2422,
           2423,
@@ -1804,14 +2513,15 @@
           2434,
           2466
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (2 merchant texts match; the 2 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 73 expense rows in 2026-08. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 1 merchant text(s) ticked. Note: Amazon is the only unambiguous online-shopping merchant.. Pool: pooled — hand-written keyword net (2 merchant texts match; the 2 most frequent shown) ∪ merchants of the top 20 rows by embedding similarity, over 73 expense rows in 2026-08."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 203.33
       }
     },
     {
@@ -1822,8 +2532,12 @@
       "question": "chai and snacks in september",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          4578,
+          4579,
+          4580
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           4598,
           4577,
@@ -1850,14 +2564,15 @@
           4585,
           4579
         ],
-        "labelNotes": "Candidate pool — exhaustive — every expense row in 2018-09 (24 rows). Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 3 merchant text(s) ticked. Note: no chai rows in 2018-09; only snack items ticked.. Pool: exhaustive — every expense row in 2018-09 (24 rows)."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 94
       }
     },
     {
@@ -1865,7 +2580,7 @@
       "group": "D",
       "dataset": "real",
       "split": "tune",
-      "question": "travel to work in august",
+      "question": "daily milk in august",
       "retrieval": {
         "goldBasis": "manual",
         "goldIds": [],
@@ -1943,60 +2658,22 @@
       "group": "D",
       "dataset": "real",
       "split": "test",
-      "question": "doctor and medicine in june",
+      "question": "doctor and medicine in july",
       "retrieval": {
         "goldBasis": "manual",
         "goldIds": [],
         "labelStatus": "draft",
         "candidateIds": [
-          4378,
-          4406,
-          4414,
-          4402,
-          4388,
-          4397,
-          4413,
-          4392,
-          4394,
-          4381,
-          4422,
-          4386,
-          4423,
-          4399,
-          4387,
-          4403,
-          4416,
-          4389,
-          4376,
-          4380,
-          4382,
-          4384,
-          4385,
-          4395,
-          4415,
-          4379,
-          4418,
-          4421,
-          4390,
-          4407,
-          4409,
-          4393,
-          4401,
-          4412,
-          4404,
-          4383,
-          4410,
-          4411,
-          4408,
-          4396,
-          4377,
-          4398,
-          4391,
-          4420,
-          4400,
-          4417
+          4469,
+          4483,
+          4484,
+          4443,
+          4458,
+          4459,
+          4508,
+          4504
         ],
-        "labelNotes": "Candidate pool — exhaustive — every expense row in 2018-06 (46 rows). Candidates are suggestions only and are never scored."
+        "labelNotes": "Candidate pool — pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 80 expense rows in 2018-07. Candidates are suggestions only and are never scored."
       },
       "answer": {
         "type": "number",

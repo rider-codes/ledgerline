@@ -94,8 +94,11 @@ const SPECS = [
   manual('D-02', 'demo', 'D', 'ride sharing and transit in july', /bart|lyft|uber|transit|taxi|cab\b/i, { month: '2026-07' }),
   manual('D-03', 'demo', 'D', 'online shopping in august', /amazon|target|best buy|uniqlo|rei|online/i, { month: '2026-08' }),
   manual('D-04', 'real', 'D', 'chai and snacks in september', /tea\b|chai|chocobar|vadapav|khari|toast|panipuri|kachori|bhel|biscuit|samosa|snack|namkeen/i, { month: '2018-09' }),
-  manual('D-05', 'real', 'D', 'travel to work in august', /residence|place|within city|auto\b|bus\b|metro|cab\b|travel|commute|work/i, { month: '2018-08' }),
-  manual('D-06', 'real', 'D', 'doctor and medicine in june', /medicine|doctor|koflet|painkiller|pharmac|tablet|syrup|clinic|dental|hospital|cough/i, { month: '2018-06' }),
+  // D-05 and D-06 were reworded before any retrieval number existed: the labeller found no relevant rows for
+  // the originals ("travel to work in august", "doctor and medicine in june"), and a retrieval question with
+  // no gold cannot be scored. Ids, dataset, group and split are unchanged.
+  manual('D-05', 'real', 'D', 'daily milk in august', /milk|\blit\b|liter|buffalo|dairy|curd|dahi/i, { month: '2018-08' }),
+  manual('D-06', 'real', 'D', 'doctor and medicine in july', /medicine|doctor|koflet|painkiller|pharmac|tablet|syrup|clinic|dental|hospital|cough/i, { month: '2018-07', netCap: 12, semTop: 8 }),
 
   // ---- E: dates and ranges the parser does not support (known gaps) ----
   sqlGold('E-01', 'demo', 'E', 'how much did I spend on transport between june and july', `${EXP} AND category = 'Transport' AND substr(date,1,7) BETWEEN '2026-06' AND '2026-07'`, SUM, { knownGap: true, notes: 'Month range.' }),
@@ -221,6 +224,63 @@ async function buildPool(spec) {
   const questions = [];
   const pools = {};
   const warnings = [];
+  const out = (f) => path.resolve(__dirname, f);
+
+  // One worksheet section. Sections are joined with '\n'; each ends with a blank line.
+  const renderSection = (q, p) => {
+    const w = [];
+    w.push(`## ${q.id} · ${q.dataset} · "${q.question}"`, '');
+    w.push(`_${p.method}_`, '');
+    const ex = p.method.match(/^exhaustive — every expense row in (\d{4}-\d{2}) \((\d+) rows\)/);
+    if (ex) {
+      w.push(`> **Exhaustive for ${ex[1]}.** This list contains every expense row in that month (${ex[2]} rows), so nothing outside it can be relevant. Check every box carefully: an unticked box means "the question is not asking about this".`, '');
+    }
+    p.groups.forEach((g, i) => {
+      w.push(`- [ ] **${g.merchant}** — ${g.n} row${g.n > 1 ? 's' : ''}, ₹${g.total}; e.g. ${g.examples.join(', ')} ⟨${String(i).padStart(2, '0')}⟩`);
+    });
+    w.push('', 'Also include (exact merchant text, separated by `;`): ', 'Note: ', '');
+    return w;
+  };
+
+  // --only D-05,D-06 : regenerate just those manual questions (question text, pool, worksheet section)
+  // inside the existing files, leaving every other question, pool, tick and label untouched.
+  const onlyIdx = process.argv.indexOf('--only');
+  const only = onlyIdx >= 0 ? String(process.argv[onlyIdx + 1] || '').split(',').filter(Boolean) : null;
+  if (only) {
+    const prev = JSON.parse(fs.readFileSync(out('questions.json'), 'utf8'));
+    const prevPools = JSON.parse(fs.readFileSync(out('labeling-pools.json'), 'utf8'));
+    let sections = fs.readFileSync(out('labeling-worksheet.md'), 'utf8').split(/^(?=## )/m);
+    for (const id of only) {
+      const s = SPECS.find((x) => x.id === id);
+      if (!s || !s.manual) throw new Error(`--only ${id}: not a manual (C/D) question`);
+      const qi = prev.questions.findIndex((x) => x.id === id);
+      const si = sections.findIndex((x) => x.startsWith(`## ${id} `));
+      if (qi < 0 || si < 0) throw new Error(`--only ${id}: not present in the existing files`);
+      const old = prev.questions[qi];
+      if (old.split !== split[id] || old.dataset !== s.ds || old.group !== s.group) throw new Error(`--only ${id}: split/dataset/group would change`);
+      const ticks = (sections[si].match(/^- \[[xX]\]/gm) || []).length;
+      if ((ticks || old.retrieval.labelStatus === 'confirmed') && !process.argv.includes('--force')) {
+        throw new Error(`--only ${id}: section has ${ticks} tick(s) / status ${old.retrieval.labelStatus}; pass --force to discard that question's labels`);
+      }
+      const pool = await buildPool(s);
+      const q = { id, group: s.group, dataset: s.ds, split: split[id], question: s.question };
+      q.retrieval = {
+        goldBasis: 'manual', goldIds: [], labelStatus: 'draft',
+        candidateIds: pool.groups.flatMap((g) => g.ids),
+        labelNotes: `Candidate pool — ${pool.method}. Candidates are suggestions only and are never scored.`,
+      };
+      q.answer = { ...s.answer, source: { ...s.answer.source }, tolerance: 0.01 };
+      prev.questions[qi] = q;
+      prevPools[id] = pool;
+      const body = renderSection(q, pool).join('\n') + (si === sections.length - 1 ? '' : '\n');
+      sections[si] = body;
+      console.log(`${id}: "${old.question}" -> "${q.question}" | ${pool.method} | ${pool.groups.length} boxes`);
+    }
+    fs.writeFileSync(out('questions.json'), JSON.stringify(prev, null, 2) + '\n');
+    fs.writeFileSync(out('labeling-pools.json'), JSON.stringify(prevPools, null, 2) + '\n');
+    fs.writeFileSync(out('labeling-worksheet.md'), sections.join(''));
+    process.exit(0);
+  }
 
   for (const s of SPECS) {
     const uid = userId[s.ds];
@@ -266,7 +326,6 @@ async function buildPool(spec) {
     },
     questions,
   };
-  const out = (f) => path.resolve(__dirname, f);
 
   // Never clobber human work: refuse to regenerate over confirmed labels or ticked boxes.
   if (!process.argv.includes('--force')) {
@@ -294,19 +353,7 @@ async function buildPool(spec) {
   w.push('- If a relevant merchant is missing from the list, add its exact text on the "Also include" line (separate several with `;`).');
   w.push('- If a question has nothing relevant at all, leave it unticked and write `none` on the Note line.');
   w.push('- "pooled" lists are not exhaustive (a keyword net I wrote by hand plus the top embedding matches), so recall of gold is bounded by what is shown. "exhaustive" lists show every expense row in the month.', '');
-  for (const q of questions.filter((x) => x.retrieval.goldBasis === 'manual')) {
-    const p = pools[q.id];
-    w.push(`## ${q.id} · ${q.dataset} · "${q.question}"`, '');
-    w.push(`_${p.method}_`, '');
-    const ex = p.method.match(/^exhaustive — every expense row in (\d{4}-\d{2}) \((\d+) rows\)/);
-    if (ex) {
-      w.push(`> **Exhaustive for ${ex[1]}.** This list contains every expense row in that month (${ex[2]} rows), so nothing outside it can be relevant. Check every box carefully: an unticked box means "the question is not asking about this".`, '');
-    }
-    p.groups.forEach((g, i) => {
-      w.push(`- [ ] **${g.merchant}** — ${g.n} row${g.n > 1 ? 's' : ''}, ₹${g.total}; e.g. ${g.examples.join(', ')} ⟨${String(i).padStart(2, '0')}⟩`);
-    });
-    w.push('', 'Also include (exact merchant text, separated by `;`): ', 'Note: ', '');
-  }
+  for (const q of questions.filter((x) => x.retrieval.goldBasis === 'manual')) w.push(...renderSection(q, pools[q.id]));
   fs.writeFileSync(out('labeling-worksheet.md'), w.join('\n'));
 
   // ---- report ----
