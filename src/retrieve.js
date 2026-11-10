@@ -190,6 +190,8 @@ async function retrieve(userId, query, opts = {}) {
     requestedMode: requested, k, params: { weight, semMin }, matchCount: agg.n, sqlTotals,
     candidateCount: candidates.length, truncatedCandidates: agg.n > candidates.length, semantic,
   };
+  // eval diagnostics only: which rows survived the SQL filters and the 800-row cap
+  if (evalMode) meta.candidateIds = candidates.map((r) => r.id);
 
   if (!candidates.length) return { rows: [], scores: [], filters: f, count: 0, mode: 'none', qualifiedCount: 0, ...meta };
 

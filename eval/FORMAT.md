@@ -100,7 +100,7 @@ Splits are seeded (`meta.splitSeed`) and fixed before any retrieval number exist
 
 ### How an answer is judged (fixed now, before any baseline)
 
-- `number`: every amount in the reply is parsed (currency symbol and thousands separators stripped); correct if **any** is within `tolerance` of `expected`.
+- `number`: every amount in the reply is parsed (currency symbol and thousands separators stripped); correct if **any** is within `tolerance` of `expected`. An "amount" is a number written with the currency symbol (`₹560.50`); bare numbers such as dates, counts and percentages are ignored.
 - `count`: the first integer directly followed by `transaction(s)|charge(s)|purchase(s)|order(s)|payment(s)|row(s)` must equal `expected`.
 - `abstain`: correct if the reply matches `/couldn'?t find|no (transactions?|spending|expenses?|data|records?)|nothing|none|don'?t see/i`.
 
@@ -108,5 +108,23 @@ Splits are seeded (`meta.splitSeed`) and fixed before any retrieval number exist
 
 For each question with confirmed gold and `k` = 20, over the ids returned by `retrieve()`:
 **Recall@20** (gold ids in the top 20 / min(gold size, 20) — so a question with 67 gold rows can still score 1.0), **hit rate** (≥ 1 gold id in the top 20), **Precision@20** (gold in top 20 / rows returned), **MRR** (1 / rank of first gold).
-Group G is scored as `abstainOk` (returned zero rows) and left out of the four averages above.
+A question that returns no rows scores 0 on all four. Group G is scored as `abstainOk` (returned zero rows) and left out of the four averages above.
 Questions with `retrieval: null` count only toward answer correctness.
+
+## Running the eval
+
+```bash
+node --test eval/score.test.js                                        # scorer unit tests
+node --experimental-sqlite eval/run-eval.js --label baseline --pin    # first run: pins default months + snapshot hash
+node --experimental-sqlite eval/run-eval.js --label <name>            # later runs
+```
+
+Output goes to `eval/results/<label>.json` (every question, retrieved ids, replies) and `<label>.md` (tables).
+
+Conditions, all with the same `k`: **keyword** (`mode: lexical`), **semantic** (`mode: semantic`), **blended**
+(`mode: hybrid`, weight 0.5, cut-off 0.5 unless overridden with `--weight` / `--semMin`) and **app default**
+(`mode: auto`, what the app does today: filtered rows newest-first when no search words are left, otherwise blended).
+Answers come from `ask()` with the deterministic rules backend, so only questions routed to its search handler
+can differ between conditions. Reported numbers are rounded down to 4 decimals.
+The run aborts if any question is unconfirmed, the snapshot hash differs from the pinned one, any transaction
+lacks a current embedding, Ollama is unreachable, or the snapshot content changes during the run.
