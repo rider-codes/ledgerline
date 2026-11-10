@@ -2583,8 +2583,16 @@
       "question": "daily milk in august",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          4544,
+          4548,
+          4549,
+          4556,
+          4563,
+          4568,
+          4575
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           4546,
           4558,
@@ -2643,14 +2651,15 @@
           4540,
           4569
         ],
-        "labelNotes": "Candidate pool — exhaustive — every expense row in 2018-08 (56 rows). Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 1 merchant text(s) ticked. Note: only plain milk ticked; Dahi, Srikhand and ice cream left unticked.. Pool: exhaustive — every expense row in 2018-08 (56 rows)."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 253
       }
     },
     {
@@ -2661,8 +2670,18 @@
       "question": "doctor and medicine in july",
       "retrieval": {
         "goldBasis": "manual",
-        "goldIds": [],
-        "labelStatus": "draft",
+        "goldIds": [
+          4443,
+          4446,
+          4458,
+          4459,
+          4469,
+          4483,
+          4484,
+          4503,
+          4504
+        ],
+        "labelStatus": "confirmed",
         "candidateIds": [
           4469,
           4483,
@@ -2673,14 +2692,15 @@
           4508,
           4504
         ],
-        "labelNotes": "Candidate pool — pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 80 expense rows in 2018-07. Candidates are suggestions only and are never scored."
+        "labelNotes": "Labelled by hand from labeling-worksheet.md: 7 merchant text(s) ticked. Note: `July salary` unticked. Lab-test row and mixed pharmacy row added via Also include (whole-row amounts counted).. Pool: pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 80 expense rows in 2018-07."
       },
       "answer": {
         "type": "number",
         "source": {
           "goldSum": true
         },
-        "tolerance": 0.01
+        "tolerance": 0.01,
+        "expected": 4918
       }
     },
     {

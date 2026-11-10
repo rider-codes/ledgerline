@@ -328,7 +328,7 @@ _exhaustive — every expense row in 2018-08 (56 rows)_
 - [ ] **Ganpati+ navratri vargani** — 1 row, ₹1000; e.g. 2018-08-24 ₹1000 ⟨22⟩
 - [ ] **hair cut** — 1 row, ₹100; e.g. 2018-08-06 ₹100 ⟨23⟩
 - [ ] **Half kg Lahsoon** — 1 row, ₹45; e.g. 2018-08-13 ₹45 ⟨24⟩
-- [ ] **Half lit milk** — 7 rows, ₹253; e.g. 2018-08-17 ₹36, 2018-08-21 ₹36, 2018-08-22 ₹37 ⟨25⟩
+- [x] **Half lit milk** — 7 rows, ₹253; e.g. 2018-08-17 ₹36, 2018-08-21 ₹36, 2018-08-22 ₹37 ⟨25⟩
 - [ ] **Home Food Delivery** — 1 row, ₹1120; e.g. 2018-08-24 ₹1120 ⟨26⟩
 - [ ] **Khari packet** — 1 row, ₹45; e.g. 2018-08-27 ₹45 ⟨27⟩
 - [ ] **M D sure 4kg atta** — 2 rows, ₹432; e.g. 2018-08-02 ₹216, 2018-08-15 ₹216 ⟨28⟩
@@ -344,18 +344,18 @@ _exhaustive — every expense row in 2018-08 (56 rows)_
 - [ ] **Warna Srikhand pav kg** — 1 row, ₹78; e.g. 2018-08-30 ₹78 ⟨38⟩
 
 Also include (exact merchant text, separated by `;`): 
-Note: 
+Note: only plain milk ticked; Dahi, Srikhand and ice cream left unticked.
 
 ## D-06 · real · "doctor and medicine in july"
 
 _pooled — hand-written keyword net (4 merchant texts match; the 4 most frequent shown) ∪ merchants of the top 8 rows by embedding similarity, over 80 expense rows in 2018-07_
 
-- [ ] **Cataract Medicine** — 3 rows, ₹2493; e.g. 2018-07-13 ₹1358, 2018-07-20 ₹87, 2018-07-20 ₹1048 ⟨00⟩
-- [ ] **Doctor Fees** — 1 row, ₹100; e.g. 2018-07-04 ₹100 ⟨01⟩
-- [ ] **eye drop** — 1 row, ₹153; e.g. 2018-07-08 ₹153 ⟨02⟩
-- [ ] **Hospital consultation** — 1 row, ₹500; e.g. 2018-07-08 ₹500 ⟨03⟩
+- [x] **Cataract Medicine** — 3 rows, ₹2493; e.g. 2018-07-13 ₹1358, 2018-07-20 ₹87, 2018-07-20 ₹1048 ⟨00⟩
+- [x] **Doctor Fees** — 1 row, ₹100; e.g. 2018-07-04 ₹100 ⟨01⟩
+- [x] **eye drop** — 1 row, ₹153; e.g. 2018-07-08 ₹153 ⟨02⟩
+- [x] **Hospital consultation** — 1 row, ₹500; e.g. 2018-07-08 ₹500 ⟨03⟩
 - [ ] **July salary** — 1 row, ₹2000; e.g. 2018-07-31 ₹2000 ⟨04⟩
-- [ ] **Medicine** — 1 row, ₹132; e.g. 2018-07-30 ₹132 ⟨05⟩
+- [x] **Medicine** — 1 row, ₹132; e.g. 2018-07-30 ₹132 ⟨05⟩
 
-Also include (exact merchant text, separated by `;`): 
-Note: 
+Also include (exact merchant text, separated by `;`): 2 Thyroid (1000) + cholesterol (220) + uric acid (220); Glucose D(50) + flora bc (40)+cyra 20(10)
+Note: `July salary` unticked. Lab-test row and mixed pharmacy row added via Also include (whole-row amounts counted).
