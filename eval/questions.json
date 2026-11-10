@@ -6,14 +6,14 @@
     "datasets": {
       "demo": {
         "userEmail": "demo@example.com",
-        "defaultMonth": null
+        "defaultMonth": "2026-09"
       },
       "real": {
         "userEmail": "real@example.com",
-        "defaultMonth": null
+        "defaultMonth": "2018-09"
       }
     },
-    "snapshotSha256": null
+    "snapshotSha256": "a3e4c09a452dc077b4c5b249d0f9286bf73257bfee7c56227f287ab3310607df"
   },
   "questions": [
     {
