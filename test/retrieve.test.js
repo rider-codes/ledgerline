@@ -106,3 +106,35 @@ test('"dining?" filters to the category', async () => {
   assert.equal(r.mode, 'structured');
   assert.equal(r.matched.count, 3);
 });
+
+// ---- bug 5: "of/for <number>" is only an amount when it is written as money ----
+
+test('durations and bare numbers after of/for are not amounts', () => {
+  const pf = (q) => parseFilters(q, DEFAULT_MONTH, USER);
+  const none = (q) => assert.deepEqual([pf(q).minAmount, pf(q).maxAmount], [undefined, undefined], q);
+  none('list charges for 2026');
+  none('dining for 3 months');
+  none('spending over 2 weeks');
+  none('about 3 months of dining');
+  none('top 5 charges of 2026');
+  const mixed = pf('charges over 100 for 3 months');
+  assert.deepEqual([mixed.minAmount, mixed.maxAmount], [100, undefined]);
+});
+
+test('money after of/for and explicit cues still filter', () => {
+  const pf = (q) => parseFilters(q, DEFAULT_MONTH, USER);
+  const win = (q) => [pf(q).minAmount, pf(q).maxAmount];
+  assert.deepEqual(win('a charge of ₹45'), [44.5, 45.5]);
+  assert.deepEqual(win('a charge for 12.50'), [12, 13]);
+  assert.deepEqual(win('exactly 120'), [119.5, 120.5]);
+  assert.deepEqual(win('around 600'), [599.5, 600.5]);
+  assert.deepEqual(win('over 1,000'), [1000, undefined]);
+  assert.deepEqual(win('under 20.'), [undefined, 20]);
+  assert.deepEqual(win('between 40 and 60'), [40, 60]);
+  assert.deepEqual(win('at least 50 and at most 200'), [50, 200]);
+});
+
+test('"charges over 100 for 3 months" keeps the 100 filter', async () => {
+  const r = await lex('dining charges over 100 for 3 months');
+  assert.deepEqual(r.rows.map((x) => x.merchant), ['Nobu']);
+});

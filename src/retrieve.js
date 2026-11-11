@@ -18,6 +18,9 @@ const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const CUR_SYMBOLS = () => [...new Set(['$', '₹', '€', '£', CUR()])];
 const CUR_MARK = () => `(?:${CUR_SYMBOLS().map(escapeRe).join('|')}|\\brs\\.?|\\binr)?`;
 
+// what follows a number when it is a duration, count or ordinal rather than money
+const NOT_MONEY_NEXT = /^\s*(?:months?|days?|weeks?|years?|yrs?|hours?|times?|x\b|%|percent|(?:st|nd|rd|th)\b)/;
+
 const KNOWN_CATS = new Set(CATEGORIES);
 // a month's full name or 3-letter abbreviation (plus "sept"), as a whole word
 const MONTH_RE = MONTH_NAMES.map((name, i) => new RegExp(`\\b(?:${name}|${name.slice(0, 3)}${i === 8 ? '|sept' : ''})\\b`));
@@ -29,20 +32,35 @@ function parseFilters(q, defaultMonth, userId) {
   const f = { consumed: new Set() };
 
   // amount comparisons — an optional currency marker ($, ₹, €, £, the configured symbol, "rs", "inr") then the number
-  const num = `${CUR_MARK()}\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)`;
+  const num = `(${CUR_MARK()})\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)`;
+  // First number after one of `keywords` that reads as money: not a count of time ("for 3 months",
+  // "over 2 weeks"), and — for weak cues like "of"/"for" — only when written as money ("for ₹45", "of 45.50").
+  const amountAfter = (keywords, { weak = false } = {}) => {
+    const re = new RegExp(`(?:${keywords})\\s*${num}`, 'g');
+    let hit;
+    while ((hit = re.exec(s))) {
+      const rest = s.slice(hit.index + hit[0].length);
+      if (/^\.?\d/.test(rest) || NOT_MONEY_NEXT.test(rest)) continue;
+      if (weak && !hit[1] && !hit[2].includes('.')) continue;
+      return parseFloat(hit[2].replace(/,/g, ''));
+    }
+    return null;
+  };
   let m;
-  if ((m = s.match(new RegExp(`between\\s+${num}\\s+and\\s+${num}`)))) {
-    f.minAmount = parseFloat(m[1].replace(/,/g, ''));
-    f.maxAmount = parseFloat(m[2].replace(/,/g, ''));
+  if ((m = s.match(new RegExp(`\\bbetween\\s+${num}\\s+and\\s+${num}`))) && !NOT_MONEY_NEXT.test(s.slice(m.index + m[0].length))) {
+    f.minAmount = parseFloat(m[2].replace(/,/g, ''));
+    f.maxAmount = parseFloat(m[4].replace(/,/g, ''));
     f.consumed.add('between');
     f.consumed.add('and');
   } else {
-    if ((m = s.match(new RegExp(`(?:over|above|more than|greater than|at least|>=?|\\bmin(?:imum)?)\\s+${num}`)))) f.minAmount = parseFloat(m[1].replace(/,/g, ''));
-    if ((m = s.match(new RegExp(`(?:under|below|less than|at most|<=?|\\bmax(?:imum)?)\\s+${num}`)))) f.maxAmount = parseFloat(m[1].replace(/,/g, ''));
-    if ((m = s.match(new RegExp(`(?:exactly|of|for|around|about|~)\\s+${num}\\b`)))) {
-      const v = parseFloat(m[1].replace(/,/g, ''));
-      f.minAmount = v - 0.5;
-      f.maxAmount = v + 0.5;
+    const min = amountAfter('\\b(?:over|above|more than|greater than|at least|min(?:imum)?)\\s|>=?');
+    const max = amountAfter('\\b(?:under|below|less than|at most|max(?:imum)?)\\s|<=?');
+    const exact = amountAfter('\\b(?:exactly|around|about)\\s|~') ?? amountAfter('\\b(?:of|for)\\s', { weak: true });
+    if (min != null) f.minAmount = min;
+    if (max != null) f.maxAmount = max;
+    if (exact != null) {
+      f.minAmount = exact - 0.5;
+      f.maxAmount = exact + 0.5;
     }
   }
   (s.match(/[0-9][0-9,]*(?:\.[0-9]{1,2})?/g) || []).forEach((tok) => f.consumed.add(tok.replace(/[^0-9.]/g, '')));
