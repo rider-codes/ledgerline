@@ -193,7 +193,9 @@ async function retrieve(userId, query, opts = {}) {
   // eval diagnostics only: which rows survived the SQL filters and the 800-row cap
   if (evalMode) meta.candidateIds = candidates.map((r) => r.id);
 
-  if (!candidates.length) return { rows: [], scores: [], filters: f, count: 0, mode: 'none', qualifiedCount: 0, ...meta };
+  if (!candidates.length) {
+    return { rows: [], scores: [], filters: f, count: 0, mode: 'none', qualifiedCount: 0, matched: { count: 0, spend: 0, income: 0 }, ...meta };
+  }
 
   // free-text terms: drop $ and numbers first, then stopwords / consumed / anything with a digit
   const cleaned = String(query).replace(/\$/g, ' ').replace(/[0-9][0-9,.]*/g, ' ');
@@ -274,9 +276,15 @@ async function retrieve(userId, query, opts = {}) {
   }));
   const totalSpend = rows.filter((r) => r.type === 'expense').reduce((a, r) => a + r.amount, 0);
   const totalIncome = rows.filter((r) => r.type === 'income').reduce((a, r) => a + r.amount, 0);
+  // Every row that matched, not just the k returned. When the filters alone decide the match, the
+  // SQL aggregate is exact; otherwise sum over all rows that qualified.
+  const sumQualified = (type) => qualified.reduce((a, x) => (x.r.type === type ? a + x.r.amount : a), 0);
+  const matched = mode === 'structured'
+    ? { count: sqlTotals.count, spend: sqlTotals.spend, income: sqlTotals.income }
+    : { count: qualified.length, spend: sumQualified('expense'), income: sumQualified('income') };
   return {
-    rows, scores, filters: f, count: rows.length, totalSpend, totalIncome, mode,
-    truncated: candidates.length > rows.length && ranked.length === k,
+    rows, scores, filters: f, count: rows.length, totalSpend, totalIncome, matched, mode,
+    truncated: matched.count > rows.length,
     qualifiedCount: qualified.length,
     ...meta,
   };
@@ -290,6 +298,7 @@ function summarizeRetrieval(res) {
     rowIds: res.rows.map((r) => r.id),
     scores: res.scores,
     shown: { count: res.count, spend: res.totalSpend ?? 0, income: res.totalIncome ?? 0 },
+    matched: res.matched,
     matchCount: res.matchCount, sqlTotals: res.sqlTotals,
     candidateCount: res.candidateCount, qualifiedCount: res.qualifiedCount,
     truncatedCandidates: res.truncatedCandidates, truncated: res.truncated ?? false,
@@ -299,14 +308,18 @@ function summarizeRetrieval(res) {
 
 function formatForPrompt(result) {
   if (!result.rows.length) return 'RELEVANT TRANSACTIONS: none matched this question.';
-  const head = `RELEVANT TRANSACTIONS (retrieved for this question — ${result.count} rows`
-    + (result.totalSpend ? `, ${money(result.totalSpend)} spent` : '')
-    + (result.totalIncome ? `, ${money(result.totalIncome)} in` : '')
+  // counts and totals cover every matching transaction, not only the rows listed below
+  const m = result.matched;
+  const more = m.count - result.rows.length;
+  const head = `RELEVANT TRANSACTIONS (retrieved for this question — ${m.count} matched`
+    + (more > 0 ? `, the ${result.rows.length} most relevant listed` : '')
+    + (m.spend ? `, ${money(m.spend)} spent in total` : '')
+    + (m.income ? `, ${money(m.income)} in in total` : '')
     + `):`;
   const lines = result.rows.map(
     (r) => `- ${r.date} | ${r.merchant || r.note || '—'} | ${r.category} | ${r.type === 'income' ? '+' : '-'}${money(r.amount)}`
   );
-  if (result.truncated) lines.push('- …(more matches not shown)');
+  if (more > 0) lines.push(`- …(${more} more matches not listed; the totals above include them)`);
   return `${head}\n${lines.join('\n')}`;
 }
 
@@ -322,9 +335,11 @@ async function searchAnswer(userId, query, opts = {}) {
   if (res.filters.month) bits.push(res.filters.month);
   if (res.filters.minAmount != null) bits.push(`≥ ${money(res.filters.minAmount)}`);
   if (res.filters.maxAmount != null) bits.push(`≤ ${money(res.filters.maxAmount)}`);
-  parts.push(`Found ${res.count} transaction(s)${bits.length ? ` (${bits.join(', ')})` : ''}${res.totalSpend ? `, ${money(res.totalSpend)} spent` : ''}${res.totalIncome ? `, ${money(res.totalIncome)} in` : ''}:`);
+  // count and totals cover every match; only the first 12 rows are listed
+  const m = res.matched;
+  parts.push(`Found ${m.count} transaction(s)${bits.length ? ` (${bits.join(', ')})` : ''}${m.spend ? `, ${money(m.spend)} spent` : ''}${m.income ? `, ${money(m.income)} in` : ''}:`);
   res.rows.slice(0, 12).forEach((r) => parts.push(`• ${r.date} — ${r.merchant || r.note || '—'} (${r.category}) ${r.type === 'income' ? '+' : '−'}${money(r.amount)}`));
-  if (res.count > 12) parts.push(`…and ${res.count - 12} more.`);
+  if (m.count > 12) parts.push(`…and ${m.count - 12} more.`);
   return parts.join('\n');
 }
 
