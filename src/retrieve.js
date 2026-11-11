@@ -14,6 +14,10 @@ const MAX_ROWS = () => Math.max(5, Math.min(120, parseInt(process.env.RAG_MAX_RO
 const CUR = () => process.env.CURRENCY || '$';
 const money = (n) => `${CUR()}${Number(n).toFixed(2)}`;
 
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const CUR_SYMBOLS = () => [...new Set(['$', '₹', '€', '£', CUR()])];
+const CUR_MARK = () => `(?:${CUR_SYMBOLS().map(escapeRe).join('|')}|\\brs\\.?|\\binr)?`;
+
 const KNOWN_CATS = new Set(CATEGORIES);
 // a month's full name or 3-letter abbreviation (plus "sept"), as a whole word
 const MONTH_RE = MONTH_NAMES.map((name, i) => new RegExp(`\\b(?:${name}|${name.slice(0, 3)}${i === 8 ? '|sept' : ''})\\b`));
@@ -24,8 +28,8 @@ function parseFilters(q, defaultMonth, userId) {
   const s = ` ${q.toLowerCase()} `;
   const f = { consumed: new Set() };
 
-  // amount comparisons
-  const num = '\\$?\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)';
+  // amount comparisons — an optional currency marker ($, ₹, €, £, the configured symbol, "rs", "inr") then the number
+  const num = `${CUR_MARK()}\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)`;
   let m;
   if ((m = s.match(new RegExp(`between\\s+${num}\\s+and\\s+${num}`)))) {
     f.minAmount = parseFloat(m[1].replace(/,/g, ''));
@@ -41,7 +45,7 @@ function parseFilters(q, defaultMonth, userId) {
       f.maxAmount = v + 0.5;
     }
   }
-  (s.match(/\$?\s*[0-9][0-9,]*(?:\.[0-9]{1,2})?/g) || []).forEach((tok) => f.consumed.add(tok.replace(/[^0-9.]/g, '')));
+  (s.match(/[0-9][0-9,]*(?:\.[0-9]{1,2})?/g) || []).forEach((tok) => f.consumed.add(tok.replace(/[^0-9.]/g, '')));
 
   // month / date window
   if (/last month|previous month|month before/.test(s) && defaultMonth) f.month = addMonths(defaultMonth, -1);
@@ -201,7 +205,7 @@ async function retrieve(userId, query, opts = {}) {
   }
 
   // free-text terms: drop $ and numbers first, then stopwords / consumed / anything with a digit
-  const cleaned = String(query).replace(/\$/g, ' ').replace(/[0-9][0-9,.]*/g, ' ');
+  const cleaned = CUR_SYMBOLS().reduce((t, sym) => t.split(sym).join(' '), String(query)).replace(/[0-9][0-9,.]*/g, ' ');
   const qTerms = [...new Set(
     tokenize(cleaned).filter((t) => t.length >= 3 && !/\d/.test(t) && !STOPWORDS.has(t) && !f.consumed.has(t))
   )];

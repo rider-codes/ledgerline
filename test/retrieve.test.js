@@ -65,3 +65,25 @@ test('a merchant containing "doctor" is found without a month filter', async () 
   const r = await lex('doctor clinic in august');
   assert.deepEqual(r.rows.map((x) => x.merchant), ['City Doctor Clinic']);
 });
+
+// ---- bug 3: amount filters accept currency symbols other than $ ----
+
+test('amount filters understand ₹, rs, inr and $', () => {
+  const pf = (q) => parseFilters(q, DEFAULT_MONTH, USER);
+  assert.equal(pf('transactions over ₹500').minAmount, 500);
+  assert.equal(pf('transactions over $500').minAmount, 500);
+  assert.equal(pf('charges under rs 20').maxAmount, 20);
+  assert.equal(pf('charges under Rs. 1,200.50').maxAmount, 1200.5);
+  assert.equal(pf('charges over INR 100').minAmount, 100);
+  assert.equal(pf('charges over 100').minAmount, 100);
+  const b = pf('between ₹40 and ₹60');
+  assert.deepEqual([b.minAmount, b.maxAmount], [40, 60]);
+});
+
+test('a ₹ amount filter narrows results and leaves no stray search word', async () => {
+  const r = await lex('charges over ₹500 in august');
+  assert.equal(r.mode, 'structured');
+  assert.deepEqual(r.rows.map((x) => x.merchant), ['Best Buy']);
+  assert.equal((await lex('charges over inr 500 in august')).mode, 'structured');
+  assert.equal((await lex('charges over 500 rupees in august')).mode, 'structured');
+});
