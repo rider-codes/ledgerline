@@ -24,6 +24,16 @@ const CUR_MARK = () => `(?:${CUR_SYMBOLS().map(escapeRe).join('|')}|\\brs\\.?|\\
 // what follows a number when it is a duration, count or ordinal rather than money
 const NOT_MONEY_NEXT = /^\s*(?:months?|days?|weeks?|years?|yrs?|hours?|times?|x\b|%|percent|(?:st|nd|rd|th)\b)/;
 
+const GENERIC_TYPE_WORDS = ['income', 'deposit', 'deposits', 'credited', 'expense', 'expenses', 'charge', 'charges', 'spent', 'purchase', 'purchases', 'debit', 'debits'];
+const TX_NOUN = '(?:charges?|purchases?|transactions?|expenses?|payments?|deposits?)';
+const SORT_CUES = [
+  ['amount_desc', new RegExp(`\\b(?:largest|biggest|highest|priciest|most expensive)\\b|\\btop(?=\\s+(?:\\d+\\s+)?(?:\\w+\\s+)?${TX_NOUN}\\b)`)],
+  ['amount_asc', /\b(?:smallest|lowest|cheapest|least expensive)\b/],
+  ['date_asc', /\b(?:oldest|earliest)\b/],
+  ['date_desc', /\b(?:latest|newest|most recent)\b/],
+];
+const ORDER_BY = { amount_desc: 'amount DESC, date DESC', amount_asc: 'amount ASC, date DESC', date_asc: 'date ASC', date_desc: 'date DESC' };
+
 const KNOWN_CATS = new Set(CATEGORIES);
 // a month's full name or 3-letter abbreviation (plus "sept"), as a whole word
 const MONTH_RE = MONTH_NAMES.map((name, i) => new RegExp(`\\b(?:${name}|${name.slice(0, 3)}${i === 8 ? '|sept' : ''})\\b`));
@@ -87,6 +97,18 @@ function parseFilters(q, defaultMonth, userId) {
   // type
   if (/\b(income|deposit|deposits|paycheck|payroll|salary|refund|credited)\b/.test(s)) f.type = 'income';
   else if (/\b(expense|expenses|charge|charges|spent|purchase|purchases|debit)\b/.test(s)) f.type = 'expense';
+  // Generic type words have done their job as a filter and are not search terms ("deposits" is in no
+  // merchant name). Words that can also name a transaction — payroll, salary, refund — stay searchable.
+  for (const w of GENERIC_TYPE_WORDS) if (new RegExp(`\\b${w}\\b`).test(s)) f.consumed.add(w);
+
+  // ordering words ("largest", "cheapest", "oldest") say how to sort, not what to search for
+  for (const [sort, re] of SORT_CUES) {
+    const hit = s.match(re);
+    if (!hit) continue;
+    f.sort = sort;
+    hit[0].split(/\s+/).forEach((w) => f.consumed.add(w));
+    break;
+  }
 
   // category — matched on a words-only view of the question, so "dining?" and "dining," still count
   const words = ` ${q.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
@@ -211,7 +233,7 @@ async function retrieve(userId, query, opts = {}) {
   const sqlTotals = { count: agg.n, spend: agg.spend, income: agg.income };
 
   const candidates = db
-    .prepare(`SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE ${where.join(' AND ')} ORDER BY date DESC LIMIT ?`)
+    .prepare(`SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE ${where.join(' AND ')} ORDER BY ${ORDER_BY[f.sort] || ORDER_BY.date_desc} LIMIT ?`)
     .all(...args, MAX_CANDIDATES());
 
   const semantic = { requested: false, used: false, error: null };
@@ -237,7 +259,7 @@ async function retrieve(userId, query, opts = {}) {
   let mode = 'lexical';
   const structuredPath = !qTerms.length && (requested === 'auto' || requested === 'lexical');
   if (structuredPath) {
-    // purely structured query — take the filtered rows newest-first
+    // purely structured query — take the filtered rows in the requested order (newest-first by default)
     qualified = candidates.map((r) => ({ r, s: 1, lex: null, lexN: null, sem: null, structured: true }));
     mode = 'structured';
   } else {

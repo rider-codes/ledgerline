@@ -153,3 +153,45 @@ test('free-text totals cover the whole account', async () => {
   assert.equal(r.matched.count, 30);
   assert.equal(r.candidateCount, r.matchCount);
 });
+
+// ---- bug 7: ordering words and generic type words are not must-match search terms ----
+
+test('"largest" sorts by amount instead of returning nothing', async () => {
+  const r = await lex('show me my largest dining charges in august');
+  assert.equal(r.mode, 'structured');
+  assert.deepEqual(r.rows.map((x) => x.merchant), ['Nobu', 'Chipotle', 'Philz Coffee']);
+  const small = await lex('cheapest dining charges in august');
+  assert.equal(small.rows[0].merchant, 'Philz Coffee');
+  const old = await lex('oldest shopping purchases');
+  assert.equal(old.rows[0].merchant, 'Old Bookshop');
+});
+
+test('default order is still newest first', async () => {
+  const r = await lex('dining charges in august');
+  assert.deepEqual(r.rows.map((x) => x.date), ['2026-08-12', '2026-08-10', '2026-08-03']);
+});
+
+test('"deposits" filters to income without becoming a search term', async () => {
+  const r = await lex('show me income deposits in august');
+  assert.equal(r.mode, 'structured');
+  assert.deepEqual(r.rows.map((x) => [x.merchant, x.amount]), [['Payroll', 3000]]);
+});
+
+test('words that name a transaction stay searchable', async () => {
+  const r = await lex('payroll deposits');
+  assert.equal(r.mode, 'lexical');
+  assert.equal(r.matched.count, 2);
+  assert.ok(r.rows.every((x) => x.merchant === 'Payroll'));
+});
+
+test('an unknown merchant still returns nothing', async () => {
+  assert.equal((await lex('show me my tesla charges')).rows.length, 0);
+  assert.equal((await lex('largest tesla charges in august')).rows.length, 0);
+});
+
+test('"top" is an ordering word only before a transaction noun', () => {
+  const pf = (q) => parseFilters(q, DEFAULT_MONTH, USER);
+  assert.equal(pf('top 5 charges in august').sort, 'amount_desc');
+  assert.equal(pf('top dining purchases').sort, 'amount_desc');
+  assert.equal(pf('mobile top up').sort, undefined);
+});
