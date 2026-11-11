@@ -35,8 +35,6 @@ const SORT_CUES = [
 const ORDER_BY = { amount_desc: 'amount DESC, date DESC', amount_asc: 'amount ASC, date DESC', date_asc: 'date ASC', date_desc: 'date DESC' };
 
 const KNOWN_CATS = new Set(CATEGORIES);
-// a month's full name or 3-letter abbreviation (plus "sept"), as a whole word
-const MONTH_RE = MONTH_NAMES.map((name, i) => new RegExp(`\\b(?:${name}|${name.slice(0, 3)}${i === 8 ? '|sept' : ''})\\b`));
 
 /* ---------------- filter parsing ---------------- */
 
@@ -48,6 +46,7 @@ function parseFilters(q, defaultMonth, userId) {
   const num = `(${CUR_MARK()})\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)`;
   // First number after one of `keywords` that reads as money: not a count of time ("for 3 months",
   // "over 2 weeks"), and — for weak cues like "of"/"for" — only when written as money ("for ₹45", "of 45.50").
+  const amountSpans = []; // [start, end) of every number read as an amount, so it is not also read as a year
   const amountAfter = (keywords, { weak = false } = {}) => {
     const re = new RegExp(`(?:${keywords})\\s*${num}`, 'g');
     let hit;
@@ -55,6 +54,8 @@ function parseFilters(q, defaultMonth, userId) {
       const rest = s.slice(hit.index + hit[0].length);
       if (/^\.?\d/.test(rest) || NOT_MONEY_NEXT.test(rest)) continue;
       if (weak && !hit[1] && !hit[2].includes('.')) continue;
+      const end = hit.index + hit[0].length;
+      amountSpans.push([end - hit[2].length, end]);
       return parseFloat(hit[2].replace(/,/g, ''));
     }
     return null;
@@ -63,6 +64,9 @@ function parseFilters(q, defaultMonth, userId) {
   if ((m = s.match(new RegExp(`\\bbetween\\s+${num}\\s+and\\s+${num}`))) && !NOT_MONEY_NEXT.test(s.slice(m.index + m[0].length))) {
     f.minAmount = parseFloat(m[2].replace(/,/g, ''));
     f.maxAmount = parseFloat(m[4].replace(/,/g, ''));
+    const end = m.index + m[0].length;
+    const first = m.index + m[0].indexOf(m[2]);
+    amountSpans.push([first, first + m[2].length], [end - m[4].length, end]);
     f.consumed.add('between');
     f.consumed.add('and');
   } else {
@@ -78,21 +82,15 @@ function parseFilters(q, defaultMonth, userId) {
   }
   (s.match(/[0-9][0-9,]*(?:\.[0-9]{1,2})?/g) || []).forEach((tok) => f.consumed.add(tok.replace(/[^0-9.]/g, '')));
 
-  // month / date window
-  if (/last month|previous month|month before/.test(s) && defaultMonth) f.month = addMonths(defaultMonth, -1);
-  else if (/this month|current month/.test(s) && defaultMonth) f.month = defaultMonth;
-  const iso = s.match(/\b(20\d{2})-(0[1-9]|1[0-2])\b/);
-  if (iso) f.month = iso[0];
-  const months = distinctMonths(userId);
-  for (let i = 0; i < 12; i++) {
-    // whole words only: "doctor" is not October and "supermarket" is not March
-    if (MONTH_RE[i].test(s)) {
-      const hit = months.filter((mm) => Number(mm.slice(5, 7)) === i + 1).sort().pop();
-      if (hit) f.month = hit;
-      f.consumed.add(MONTH_NAMES[i]);
-      f.consumed.add(MONTH_NAMES[i].slice(0, 3));
-    }
+  // dates — every month the question names (ranges and years included), or whole years
+  const dates = parseDates(s, defaultMonth, distinctMonths(userId), amountSpans);
+  if (dates.months.length) {
+    f.months = dates.months;
+    if (dates.months.length === 1) f.month = dates.months[0];
+  } else if (dates.years.length) {
+    f.years = dates.years;
   }
+  dates.consumed.forEach((w) => f.consumed.add(w));
 
   // type
   if (/\b(income|deposit|deposits|paycheck|payroll|salary|refund|credited)\b/.test(s)) f.type = 'income';
@@ -112,19 +110,95 @@ function parseFilters(q, defaultMonth, userId) {
 
   // category — matched on a words-only view of the question, so "dining?" and "dining," still count
   const words = ` ${q.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
-  for (const cat of KNOWN_CATS) {
-    if (words.includes(` ${cat.toLowerCase()} `)) { f.category = cat; f.consumed.add(cat.toLowerCase()); }
-  }
-  if (!f.category) {
+  // every category named outright ("dining and groceries"); failing that, every category a synonym points to
+  const cats = [...KNOWN_CATS].filter((cat) => words.includes(` ${cat.toLowerCase()} `));
+  cats.forEach((cat) => f.consumed.add(cat.toLowerCase()));
+  if (!cats.length) {
     for (const [cat, syns] of Object.entries(CAT_SYNONYMS)) {
       for (const w of syns) {
         if (BRANDS.has(w)) continue; // keep brand names as free search terms
-        if (words.includes(` ${w} `) || words.includes(` ${w}s `)) { f.category = cat; f.consumed.add(w); break; }
+        if (words.includes(` ${w} `) || words.includes(` ${w}s `)) { cats.push(cat); f.consumed.add(w); break; }
       }
-      if (f.category) break;
     }
   }
+  if (cats.length) {
+    f.categories = cats;
+    if (cats.length === 1) f.category = cats[0];
+  }
   return f;
+}
+
+const MONTH_ALT = MONTH_NAMES.map((n, i) => `${n}|${n.slice(0, 3)}${i === 8 ? '|sept' : ''}`).join('|');
+const toYm = (year, month) => `${year}-${String(month).padStart(2, '0')}`;
+
+// Every month or year a question names.
+//  - A month may carry its year ("march 2018", "2018-03"). Without one it takes the only year mentioned
+//    elsewhere in the question, else its latest occurrence in the user's data, else the most recent such
+//    month — so a month with no data stays a real filter that matches nothing, instead of being dropped.
+//  - "june to august" and "between june and august" expand to the whole range.
+//  - Years with no month ("in 2017") are returned as years; numbers already read as amounts are not years.
+function parseDates(s, defaultMonth, dataMonths, amountSpans = []) {
+  const consumed = [];
+  const mentions = []; // { start, end, ym, year } or { start, end, idx, year }
+  let m;
+  const isoRe = /\b((?:19|20)\d{2})-(0[1-9]|1[0-2])\b/g;
+  while ((m = isoRe.exec(s))) mentions.push({ start: m.index, end: m.index + m[0].length, ym: m[0], year: Number(m[1]) });
+  // whole words only: "doctor" is not October and "supermarket" is not March
+  const nameRe = new RegExp(`\\b(${MONTH_ALT})\\b\\.?(?:,?\\s+(?:of\\s+)?((?:19|20)\\d{2})\\b)?`, 'g');
+  while ((m = nameRe.exec(s))) {
+    const idx = MONTH_NAMES.findIndex((n) => n.slice(0, 3) === m[1].slice(0, 3));
+    mentions.push({ start: m.index, end: m.index + m[0].length, idx, year: m[2] ? Number(m[2]) : null });
+    consumed.push(MONTH_NAMES[idx], MONTH_NAMES[idx].slice(0, 3), m[1]);
+  }
+  if (defaultMonth) {
+    for (const [re, delta] of [[/\b(?:last|previous) month\b|\bmonth before\b/, -1], [/\b(?:this|current) month\b/, 0]]) {
+      const hit = s.match(re);
+      if (hit) mentions.push({ start: hit.index, end: hit.index + hit[0].length, ym: addMonths(defaultMonth, delta), year: null });
+    }
+  }
+  mentions.sort((a, b) => a.start - b.start);
+
+  const priceBefore = new RegExp(`(?:${CUR_SYMBOLS().map(escapeRe).join('|')}|\\brs\\.?|\\binr)\\s*$`);
+  const bareYears = [];
+  const yearRe = /\b(?:19|20)\d{2}\b/g;
+  while ((m = yearRe.exec(s))) {
+    const i = m.index;
+    if (mentions.some((x) => i >= x.start && i < x.end) || amountSpans.some(([a, b]) => i >= a && i < b)) continue;
+    const before = s.slice(0, i);
+    if (/[\d.,]$/.test(before) || priceBefore.test(before) || /^[.,]\d/.test(s.slice(i + 4))) continue; // part of a number or a price
+    bareYears.push(Number(m[0]));
+  }
+  const years = [...new Set([...mentions.map((x) => x.year).filter(Boolean), ...bareYears])].sort();
+
+  const onlyYear = years.length === 1 ? years[0] : null;
+  const ref = dataMonths[dataMonths.length - 1] || defaultMonth || new Date().toISOString().slice(0, 7);
+  const resolve = (x) => {
+    if (x.ym) return x.ym;
+    const mo = x.idx + 1;
+    if (x.year) return toYm(x.year, mo);
+    if (onlyYear) return toYm(onlyYear, mo);
+    const inData = dataMonths.filter((d) => Number(d.slice(5, 7)) === mo).pop();
+    if (inData) return inData;
+    const [refYear, refMonth] = ref.split('-').map(Number);
+    return toYm(mo <= refMonth ? refYear : refYear - 1, mo);
+  };
+
+  const months = new Set();
+  for (let i = 0; i < mentions.length; i++) {
+    const a = mentions[i];
+    const b = mentions[i + 1];
+    const gap = b ? s.slice(a.end, b.start).trim() : null;
+    const isRange = b && (/^(?:to|through|thru|until|till|-|–|—)$/.test(gap) || (gap === 'and' && /\bbetween\s+$/.test(s.slice(0, a.start))));
+    if (!isRange) { months.add(resolve(a)); continue; }
+    let from = resolve(a);
+    let to = resolve(b);
+    if (from > to && addMonths(from, -12) <= to) from = addMonths(from, -12); // "november to february"
+    if (from > to) [from, to] = [to, from];
+    for (let cur = from, n = 0; cur <= to && n < 240; cur = addMonths(cur, 1), n++) months.add(cur);
+    if (/^[a-z]+$/.test(gap)) consumed.push(gap);
+    i++;
+  }
+  return { months: [...months].sort(), years: months.size ? [] : years, consumed };
 }
 
 function addMonths(ym, delta) {
@@ -215,9 +289,11 @@ async function retrieve(userId, query, opts = {}) {
 
   const where = ['user_id = ?'];
   const args = [userId];
-  if (f.month) { where.push('substr(date,1,7) = ?'); args.push(f.month); }
+  const marks = (list) => list.map(() => '?').join(',');
+  if (f.months) { where.push(`substr(date,1,7) IN (${marks(f.months)})`); args.push(...f.months); }
+  else if (f.years) { where.push(`substr(date,1,4) IN (${marks(f.years)})`); args.push(...f.years.map(String)); }
   if (f.type) { where.push('type = ?'); args.push(f.type); }
-  if (f.category) { where.push('category = ?'); args.push(f.category); }
+  if (f.categories) { where.push(`category IN (${marks(f.categories)})`); args.push(...f.categories); }
   if (f.minAmount != null) { where.push('amount >= ?'); args.push(f.minAmount); }
   if (f.maxAmount != null) { where.push('amount <= ?'); args.push(f.maxAmount); }
 
@@ -382,8 +458,10 @@ async function searchAnswer(userId, query, opts = {}) {
   if (!res.rows.length) return `I couldn't find any transactions matching that.`;
   const parts = [];
   const bits = [];
-  if (res.filters.category) bits.push(res.filters.category);
-  if (res.filters.month) bits.push(res.filters.month);
+  const fm = res.filters.months;
+  if (res.filters.categories) bits.push(res.filters.categories.join(' + '));
+  if (fm) bits.push(fm.length > 2 ? `${fm[0]} to ${fm[fm.length - 1]}` : fm.join(' + '));
+  if (res.filters.years) bits.push(res.filters.years.join(' + '));
   if (res.filters.minAmount != null) bits.push(`≥ ${money(res.filters.minAmount)}`);
   if (res.filters.maxAmount != null) bits.push(`≤ ${money(res.filters.maxAmount)}`);
   // count and totals cover every match; only the first 12 rows are listed
@@ -394,4 +472,4 @@ async function searchAnswer(userId, query, opts = {}) {
   return parts.join('\n');
 }
 
-module.exports = { retrieve, formatForPrompt, searchAnswer, parseFilters, summarizeRetrieval, MODES };
+module.exports = { retrieve, formatForPrompt, searchAnswer, parseFilters, parseDates, summarizeRetrieval, MODES };

@@ -3,7 +3,7 @@
 const { db, CATEGORIES } = require('./db');
 const A = require('./analytics');
 const { CAT_SYNONYMS, MONTH_NAMES } = require('./vocab');
-const { retrieve, formatForPrompt, searchAnswer, summarizeRetrieval } = require('./retrieve');
+const { retrieve, formatForPrompt, searchAnswer, summarizeRetrieval, parseFilters } = require('./retrieve');
 
 const CURRENCY = () => process.env.CURRENCY || '$';
 const fmt = (n) => `${CURRENCY()}${Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -37,20 +37,15 @@ function findCategory(q) {
   return null;
 }
 
+// Months the question names, resolved the same way the retriever resolves them (years honoured,
+// and a month with no data kept as itself rather than swapped for another month).
+function namedMonths(userId, q) {
+  return parseFilters(q, A.defaultMonth(userId), userId).months || [];
+}
+
 function findMonth(userId, q) {
-  const months = A.listMonths(userId);
-  const def = A.defaultMonth(userId);
-  if (/last month|previous month|month before/.test(q)) return A.addMonths(def, -1);
-  if (/this month|current month/.test(q)) return def;
-  const iso = q.match(/\b(20\d{2})-(0[1-9]|1[0-2])\b/);
-  if (iso && months.includes(iso[0])) return iso[0];
-  for (let i = 0; i < 12; i++) {
-    if (q.includes(MONTH_NAMES[i])) {
-      const match = months.filter((m) => Number(m.slice(5, 7)) === i + 1).sort().pop();
-      if (match) return match;
-    }
-  }
-  return def;
+  const named = namedMonths(userId, q);
+  return named.length ? named[0] : A.defaultMonth(userId);
 }
 
 // Month names in the order they appear in the question, resolved to YYYY-MM.
@@ -305,6 +300,12 @@ async function viaRules(userId, summary, message, ctx = {}) {
     if (ctx.trace) Object.assign(ctx.trace, { route, month, category, merchant });
     return text;
   };
+
+  // the question names one month and nothing is recorded for it: say so instead of answering for another month
+  const named = namedMonths(userId, q);
+  if (named.length === 1 && !A.listMonths(userId).includes(named[0])) {
+    return done('no-data', `I don't see any transactions in ${A.monthLabel(named[0])}.`);
+  }
 
   // explicit intents first
   if (/(savings? rate|saving enough|am i saving|how.?s my saving|left ?over|surplus|net income|how much (do|did|am) i (save|saving|keep))/.test(q)) return done('savings', answerSavings(userId, month));

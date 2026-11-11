@@ -195,3 +195,77 @@ test('"top" is an ordering word only before a transaction noun', () => {
   assert.equal(pf('top dining purchases').sort, 'amount_desc');
   assert.equal(pf('mobile top up').sort, undefined);
 });
+
+// ---- bug 9: several months / categories, years, and months with no data ----
+
+const pf9 = (q) => parseFilters(q, DEFAULT_MONTH, USER);
+
+test('several months, ranges and years', () => {
+  assert.deepEqual(pf9('dining in july and august').months, ['2026-07', '2026-08']);
+  assert.deepEqual(pf9('dining between june and august').months, ['2026-06', '2026-07', '2026-08']);
+  assert.deepEqual(pf9('dining from june to august').months, ['2026-06', '2026-07', '2026-08']);
+  assert.deepEqual(pf9('dining in august 2025').months, ['2025-08']);
+  assert.deepEqual(pf9('dining in aug, 2025').months, ['2025-08']);
+  assert.deepEqual(pf9('dining 2025-08').months, ['2025-08']);
+  assert.deepEqual(pf9('march and april 2026').months, ['2026-03', '2026-04']);
+  assert.deepEqual(pf9('dining in august').months, ['2026-08']);
+  assert.equal(pf9('dining in august').month, '2026-08');
+  assert.deepEqual(pf9('november to february').months, ['2025-11', '2025-12', '2026-01', '2026-02']);
+  assert.deepEqual(pf9('dining last month').months, ['2026-08']);
+});
+
+test('a year on its own is a date filter, not an amount', () => {
+  const f = pf9('dining in 2025');
+  assert.deepEqual(f.years, [2025]);
+  assert.equal(f.months, undefined);
+  assert.equal(f.minAmount, undefined);
+  assert.deepEqual(pf9('list charges for 2026').years, [2026]);
+  assert.deepEqual(pf9('spending in 2025 and 2026').years, [2025, 2026]);
+});
+
+test('amounts that look like years stay amounts', () => {
+  for (const q of ['charges over 2000', 'charges under ₹2020', 'exactly 2024', 'between 1990 and 2010']) {
+    assert.equal(pf9(q).years, undefined, q);
+    assert.equal(pf9(q).months, undefined, q);
+  }
+  assert.equal(pf9('charges over 2000').minAmount, 2000);
+  const both = pf9('charges over 2000 in 2025');
+  assert.deepEqual([both.minAmount, both.years], [2000, [2025]]);
+});
+
+test('a month with no data is still a filter and matches nothing', async () => {
+  assert.deepEqual(pf9('how much did I spend in december').months, ['2025-12']);
+  const r = await lex('spending in december');
+  assert.equal(r.rows.length, 0);
+  assert.equal(r.matched.count, 0);
+});
+
+test('several categories', async () => {
+  assert.deepEqual(pf9('dining and shopping in august').categories, ['Dining', 'Shopping']);
+  assert.equal(pf9('dining and shopping in august').category, undefined);
+  assert.deepEqual(pf9('restaurants and the supermarket').categories, ['Dining', 'Groceries']);
+  assert.equal(pf9('dining in august').category, 'Dining');
+  const r = await lex('dining and shopping charges in august');
+  assert.equal(r.matched.count, 4);
+  assert.equal(r.matched.spend, 777.5);
+});
+
+test('date filters reach the rows', async () => {
+  assert.deepEqual((await lex('dining in 2025')).rows.map((x) => x.merchant), ['Old Diner']);
+  assert.deepEqual((await lex('dining in august 2025')).rows.map((x) => x.merchant), ['Old Diner']);
+  assert.equal((await lex('dining in july and august')).matched.count, 4);
+});
+
+test('the assistant says when a named month has no data', async () => {
+  const A = require('../src/analytics');
+  const { ask } = require('../src/agent');
+  A.pinDefaultMonth(USER, DEFAULT_MONTH);
+  const none = await ask(USER, 'how much did I spend in december');
+  assert.equal(none.reply, "I don't see any transactions in Dec 2025.");
+  assert.equal(none.trace.route, 'no-data');
+  const aug = await ask(USER, 'how much did I spend on dining in august?');
+  assert.match(aug.reply, /^Dining in Aug 2026: ₹177\.50 across 3 transactions/);
+  const old = await ask(USER, 'how much did I spend on dining in august 2025');
+  assert.match(old.reply, /^Dining in Aug 2025: ₹55\.00 across 1 transactions/);
+  A.pinDefaultMonth(USER, null);
+});
