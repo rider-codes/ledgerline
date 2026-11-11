@@ -73,7 +73,8 @@ function cosine(a, b) {
   return s;
 }
 const toBlob = (vec) => Buffer.from(Float32Array.from(vec).buffer);
-const fromBlob = (buf) => Array.from(new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4));
+// copy into an aligned Float32Array (no per-element boxing, so scoring a whole account stays cheap)
+const fromBlob = (buf) => new Float32Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
 
 /* ---------------- document text + hashing ---------------- */
 
@@ -105,13 +106,18 @@ function storeVectors(rows, vecs) {
   }
 }
 
-function loadVectors(ids) {
-  if (!ids.length) return new Map();
-  const placeholders = ids.map(() => '?').join(',');
-  const rows = db
-    .prepare(`SELECT transaction_id, doc_hash, vec FROM tx_embed WHERE transaction_id IN (${placeholders}) AND model = ?`)
-    .all(...ids, model());
-  return new Map(rows.map((r) => [r.transaction_id, { hash: r.doc_hash, vec: fromBlob(r.vec) }]));
+// Read in chunks: SQLite limits the number of bound parameters, and a query may now cover a whole account.
+const ID_CHUNK = 500;
+function loadVectors(ids, { hashOnly = false } = {}) {
+  const out = new Map();
+  for (let i = 0; i < ids.length; i += ID_CHUNK) {
+    const chunk = ids.slice(i, i + ID_CHUNK);
+    const rows = db
+      .prepare(`SELECT transaction_id, doc_hash${hashOnly ? '' : ', vec'} FROM tx_embed WHERE transaction_id IN (${chunk.map(() => '?').join(',')}) AND model = ?`)
+      .all(...chunk, model());
+    for (const r of rows) out.set(r.transaction_id, { hash: r.doc_hash, vec: hashOnly ? null : fromBlob(r.vec) });
+  }
+  return out;
 }
 
 /* ---------------- indexing ---------------- */
@@ -119,7 +125,7 @@ function loadVectors(ids) {
 // Embed any of these rows that are missing / stale. Bounded so a query stays fast.
 async function ensureIndexed(rows, cap = 80) {
   if (!enabled() || !rows.length) return { added: 0 };
-  const have = loadVectors(rows.map((r) => r.id));
+  const have = loadVectors(rows.map((r) => r.id), { hashOnly: true });
   const stale = rows.filter((r) => {
     const h = have.get(r.id);
     return !h || h.hash !== docHash(r);
@@ -137,7 +143,7 @@ async function reindexUser(userId, { force = false, batch = 64, max } = {}) {
   const all = db
     .prepare('SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE user_id = ? ORDER BY id')
     .all(userId);
-  const have = force ? new Map() : loadVectors(all.map((r) => r.id));
+  const have = force ? new Map() : loadVectors(all.map((r) => r.id), { hashOnly: true });
   const todo = all.filter((r) => {
     const h = have.get(r.id);
     return !h || h.hash !== docHash(r);

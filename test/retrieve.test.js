@@ -138,3 +138,18 @@ test('"charges over 100 for 3 months" keeps the 100 filter', async () => {
   const r = await lex('dining charges over 100 for 3 months');
   assert.deepEqual(r.rows.map((x) => x.merchant), ['Nobu']);
 });
+
+// ---- bug 6: old transactions are searched too (no newest-800 window) ----
+
+test('a merchant older than the newest 800 rows is still found', async () => {
+  const r = await lex('old bookshop');
+  // ranked first; 'Old Diner' also matches the word "old" and may follow
+  assert.deepEqual([r.rows[0].merchant, r.rows[0].date], ['Old Bookshop', '2020-01-15']);
+  assert.equal(r.truncatedCandidates, false);
+});
+
+test('free-text totals cover the whole account', async () => {
+  const r = await lex('corner store', { k: 5 });
+  assert.equal(r.matched.count, 30);
+  assert.equal(r.candidateCount, r.matchCount);
+});

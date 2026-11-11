@@ -11,6 +11,9 @@ const { CAT_SYNONYMS, MONTH_NAMES, BRANDS, STOPWORDS, tokenize } = require('./vo
 const embed = require('./embed');
 
 const MAX_ROWS = () => Math.max(5, Math.min(120, parseInt(process.env.RAG_MAX_ROWS || '40', 10)));
+// Rows scored per query. High enough to cover a whole account (imports are capped at 20,000 rows),
+// so old transactions are ranked too; it is only a safety bound.
+const MAX_CANDIDATES = () => Math.max(100, parseInt(process.env.RAG_MAX_CANDIDATES || '20000', 10) || 20000);
 const CUR = () => process.env.CURRENCY || '$';
 const money = (n) => `${CUR()}${Number(n).toFixed(2)}`;
 
@@ -208,15 +211,15 @@ async function retrieve(userId, query, opts = {}) {
   const sqlTotals = { count: agg.n, spend: agg.spend, income: agg.income };
 
   const candidates = db
-    .prepare(`SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE ${where.join(' AND ')} ORDER BY date DESC LIMIT 800`)
-    .all(...args);
+    .prepare(`SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE ${where.join(' AND ')} ORDER BY date DESC LIMIT ?`)
+    .all(...args, MAX_CANDIDATES());
 
   const semantic = { requested: false, used: false, error: null };
   const meta = {
     requestedMode: requested, k, params: { weight, semMin }, matchCount: agg.n, sqlTotals,
     candidateCount: candidates.length, truncatedCandidates: agg.n > candidates.length, semantic,
   };
-  // eval diagnostics only: which rows survived the SQL filters and the 800-row cap
+  // eval diagnostics only: which rows survived the SQL filters (and the candidate bound)
   if (evalMode) meta.candidateIds = candidates.map((r) => r.id);
 
   if (!candidates.length) {
