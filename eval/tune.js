@@ -26,7 +26,9 @@ const { contentHash } = require('./lib/snapshot');
 const { retrievalMetrics, floor4 } = require('./lib/score');
 
 const WEIGHTS = [0, 0.25, 0.5, 0.75, 1];
-const CUTOFFS = [0.4, 0.45, 0.5, 0.55, 0.6];
+// 0.65 and 0.7 were added after the first sweep (0.4–0.6) selected the top edge of the range,
+// to check whether the optimum lay beyond it. Same selection rule, still tuning split only.
+const CUTOFFS = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7];
 const DEFAULT = { weight: 0.5, semMin: 0.5 };
 
 (async () => {
