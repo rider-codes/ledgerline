@@ -9,7 +9,7 @@
     "dev": "node --experimental-sqlite --watch server.js",
     "seed": "node --experimental-sqlite src/seed.js",
     "reset": "node --experimental-sqlite src/seed.js --reset",
-    "test": "node --experimental-sqlite --test test/retrieve.test.js eval/score.test.js"
+    "test": "node --experimental-sqlite --test test/retrieve.test.js test/agent.test.js eval/score.test.js"
   },
   "engines": {
     "node": ">=22.5.0"

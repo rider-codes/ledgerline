@@ -2,7 +2,7 @@
 
 const { db, CATEGORIES } = require('./db');
 const A = require('./analytics');
-const { CAT_SYNONYMS, MONTH_NAMES } = require('./vocab');
+const { CAT_SYNONYMS, MONTH_NAMES, BRANDS } = require('./vocab');
 const { retrieve, formatForPrompt, searchAnswer, summarizeRetrieval, parseFilters } = require('./retrieve');
 
 const CURRENCY = () => process.env.CURRENCY || '$';
@@ -31,6 +31,7 @@ function findCategory(q) {
   }
   for (const [cat, words] of Object.entries(CAT_SYNONYMS)) {
     for (const w of words) {
+      if (BRANDS.has(w)) continue; // a brand ("uber") names a merchant, not its whole category
       if (s.includes(` ${w} `) || s.includes(` ${w}s `) || s.includes(` ${w},`) || s.includes(` ${w}?`)) return cat;
     }
   }
@@ -68,15 +69,30 @@ function findMerchant(userId, q) {
   const rows = db
     .prepare(`SELECT merchant, COUNT(*) c FROM transactions WHERE user_id = ? AND merchant <> '' GROUP BY merchant`)
     .all(userId);
+  // a full merchant name beats a match on its first word ("uber" -> "Uber", not "Uber Eats");
+  // ties go to the longer name
+  const hasWord = (w) => new RegExp(`(^|[^a-z0-9])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z0-9])`).test(q);
   let best = null;
+  let bestScore = 0;
   for (const r of rows) {
     const m = r.merchant.toLowerCase();
     const head = m.split(/\s|—|-/)[0];
-    if ((m.length >= 4 && q.includes(m)) || (head.length >= 4 && q.includes(head))) {
-      if (!best || r.merchant.length > best.length) best = r.merchant;
+    const score = m.length >= 4 && hasWord(m) ? 2 : head.length >= 4 && hasWord(head) ? 1 : 0;
+    if (score && (score > bestScore || (score === bestScore && r.merchant.length > best.length))) {
+      best = r.merchant;
+      bestScore = score;
     }
   }
   return best;
+}
+
+// "at Tesla" / "from Tesla" naming a place that is not one of the user's merchants -> "Tesla"
+const NOT_A_PLACE = new Set(['least', 'most', 'all', 'once', 'home', 'work', 'the moment', 'this point', 'this rate']);
+function unknownPlace(q, merchant) {
+  if (merchant) return null;
+  const m = q.match(/\b(?:at|from)\s+(?:the\s+)?([a-z0-9][a-z0-9'&.\- ]{1,40}?)(?=\s+(?:in|on|during|for|this|last|since|over|under|between|and)\b|[?.,!]|\s*$)/);
+  if (!m || NOT_A_PLACE.has(m[1].trim())) return null;
+  return m[1].trim().replace(/\b[a-z]/g, (c) => c.toUpperCase());
 }
 
 function trendLine(userId, category, endMonth) {
@@ -133,16 +149,18 @@ function answerMerchant(userId, merchant, month) {
   return parts.join('\n');
 }
 
-function answerBiggest(userId, month) {
+// Largest expenses in a month, narrowed to the category or merchant the question names.
+function answerBiggest(userId, month, { category, merchant } = {}) {
+  const where = ["user_id=?", "type='expense'", 'substr(date,1,7)=?'];
+  const args = [userId, month];
+  if (merchant) { where.push('merchant=?'); args.push(merchant); }
+  else if (category) { where.push('category=?'); args.push(category); }
   const rows = db
-    .prepare(
-      `SELECT date, merchant, category, amount FROM transactions
-       WHERE user_id=? AND type='expense' AND substr(date,1,7)=?
-       ORDER BY amount DESC LIMIT 5`
-    )
-    .all(userId, month);
-  if (!rows.length) return `No expenses recorded in ${A.monthLabel(month)}.`;
-  const parts = [`Biggest expenses in ${A.monthLabel(month)}:`];
+    .prepare(`SELECT date, merchant, category, amount FROM transactions WHERE ${where.join(' AND ')} ORDER BY amount DESC LIMIT 5`)
+    .all(...args);
+  const scope = merchant ? `${merchant} ` : category ? `${category} ` : '';
+  if (!rows.length) return `No ${scope}expenses recorded in ${A.monthLabel(month)}.`;
+  const parts = [`Biggest ${scope}expenses in ${A.monthLabel(month)}:`];
   rows.forEach((r, i) => parts.push(`${i + 1}. ${fmt2(r.amount)} — ${r.merchant || r.category} (${r.category}, ${r.date})`));
   return parts.join('\n');
 }
@@ -295,6 +313,7 @@ async function viaRules(userId, summary, message, ctx = {}) {
   const month = findMonth(userId, q);
   const category = findCategory(q);
   const merchant = findMerchant(userId, q);
+  const place = category ? null : unknownPlace(q, merchant);
   // record which handler answered, so an eval can tell "retrieval question" from "analytics question"
   const done = (route, text) => {
     if (ctx.trace) Object.assign(ctx.trace, { route, month, category, merchant });
@@ -312,7 +331,10 @@ async function viaRules(userId, summary, message, ctx = {}) {
   if (/(where can i save|save money|cut back|cut down|reduce (my )?spend|trim|spend less|help me save|save on|tighten)/.test(q)) return done('save', answerSave(userId, month));
   if (/(overspend|over-?spent|over spend|too much|spik|blew|splurg|worst|ran hot|went over)/.test(q)) return done('overspend', answerOverspend(userId, month));
   if (/(subscription|recurring charge|unused|streaming service|memberships?)/.test(q)) return done('subscriptions', answerSubscriptions(userId));
-  if (/(biggest|largest|most expensive|priciest|top (purchase|expense|transaction)|single (biggest|largest))/.test(q)) return done('biggest', answerBiggest(userId, month));
+  if (/(biggest|largest|most expensive|priciest|top (purchase|expense|transaction)|single (biggest|largest))/.test(q)) {
+    if (place) return done('no-merchant', `I don't see any transactions at ${place}.`);
+    return done('biggest', answerBiggest(userId, month, { category, merchant }));
+  }
   if (/(income|salary|paycheck|paychecks|get paid|\bearn|made this|how much.*made|deposits?)/.test(q)) return done('income', answerIncome(userId, month));
   if (/(compare|\bvs\b|versus|month.*to.*month|to last month|against last)/.test(q)) {
     const mm = monthsInQuery(userId, q);
@@ -337,6 +359,7 @@ async function viaRules(userId, summary, message, ctx = {}) {
   if (merchant && /(spend|spent|cost|how much|paid|charge|at |on )/.test(q)) return done('merchant', answerMerchant(userId, merchant, month));
   if (category) return done('category', answerCategory(userId, category, month));
   if (merchant) return done('merchant', answerMerchant(userId, merchant, month));
+  if (place) return done('no-merchant', `I don't see any transactions at ${place}.`);
   if (/(total|how much did i spend|how much have i spent|spending this|spend this|spent in|what did i spend)/.test(q)) return done('total', answerTotal(userId, month));
 
   return done('fallback', fallback(userId, month));
