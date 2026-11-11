@@ -16,8 +16,9 @@ const enabled = () => String(process.env.EMBED_ENABLED || '').toLowerCase() === 
   || (process.env.EMBED_ENABLED == null && (process.env.AI_BACKEND || '').toLowerCase() === 'ollama');
 const model = () => process.env.EMBED_MODEL || 'nomic-embed-text';
 const ollamaUrl = () => (process.env.OLLAMA_URL || 'http://localhost:11434').replace(/\/$/, '');
-const SEM_WEIGHT = () => Math.max(0, Math.min(1, parseFloat(process.env.RAG_SEMANTIC_WEIGHT || '0.5')));
-const SEM_MIN = () => parseFloat(process.env.RAG_SEMANTIC_MIN || '0.5');
+// Defaults chosen by eval/tune.js on the tuning split (see eval/results/tuning.md).
+const SEM_WEIGHT = () => Math.max(0, Math.min(1, parseFloat(process.env.RAG_SEMANTIC_WEIGHT || '1')));
+const SEM_MIN = () => parseFloat(process.env.RAG_SEMANTIC_MIN || '0.6');
 
 /* ---------------- Ollama calls ---------------- */
 

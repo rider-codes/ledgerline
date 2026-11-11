@@ -107,7 +107,7 @@ Chipotle, `AMZN` → Amazon):
    re-embedded automatically when they turn up in a search.
 
 Ranking then blends the lexical BM25 score with embedding cosine similarity
-(`RAG_SEMANTIC_WEIGHT`, default 0.5; `RAG_SEMANTIC_MIN` gates weak semantic-only matches).
+(`RAG_SEMANTIC_WEIGHT`, default 1; `RAG_SEMANTIC_MIN`, default 0.6, gates weak semantic-only matches; both tuned with `eval/tune.js`).
 If Ollama or the embed model isn't reachable, search silently falls back to lexical-only.
 `src/embed.js` holds the whole thing; `src/retrieve.js` calls into it.
 

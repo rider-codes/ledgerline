@@ -326,8 +326,8 @@ retrieve(userId, query):
          · ensureIndexed(candidates)  — embed missing/stale rows (≤ 80/call)
          · embedQuery(query)          — one Ollama call
          · cosine(qVec, rowVec)       — vectors are unit-normalized → dot product
-       final = (1-w)·lexNorm + w·cosine      (w = RAG_SEMANTIC_WEIGHT, default 0.5)
-       a row qualifies if lexScore > 0  OR  cosine ≥ RAG_SEMANTIC_MIN (0.5)
+       final = (1-w)·lexNorm + w·cosine      (w = RAG_SEMANTIC_WEIGHT, default 1)
+       a row qualifies if lexScore > 0  OR  cosine ≥ RAG_SEMANTIC_MIN (0.6)
      if Ollama/model unreachable → sem = null → pure lexical (silent)
   6. top-k rows + aggregate (count, spent, income)  →  mode: structured|lexical|hybrid
 ```
