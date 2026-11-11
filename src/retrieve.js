@@ -15,6 +15,8 @@ const CUR = () => process.env.CURRENCY || '$';
 const money = (n) => `${CUR()}${Number(n).toFixed(2)}`;
 
 const KNOWN_CATS = new Set(CATEGORIES);
+// a month's full name or 3-letter abbreviation (plus "sept"), as a whole word
+const MONTH_RE = MONTH_NAMES.map((name, i) => new RegExp(`\\b(?:${name}|${name.slice(0, 3)}${i === 8 ? '|sept' : ''})\\b`));
 
 /* ---------------- filter parsing ---------------- */
 
@@ -48,7 +50,8 @@ function parseFilters(q, defaultMonth, userId) {
   if (iso) f.month = iso[0];
   const months = distinctMonths(userId);
   for (let i = 0; i < 12; i++) {
-    if (s.includes(MONTH_NAMES[i]) || s.includes(MONTH_NAMES[i].slice(0, 3))) {
+    // whole words only: "doctor" is not October and "supermarket" is not March
+    if (MONTH_RE[i].test(s)) {
       const hit = months.filter((mm) => Number(mm.slice(5, 7)) === i + 1).sort().pop();
       if (hit) f.month = hit;
       f.consumed.add(MONTH_NAMES[i]);

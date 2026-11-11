@@ -41,3 +41,27 @@ test('nothing matched', async () => {
 });
 
 module.exports = { lex, parseFilters };
+
+// ---- bug 2: month names only match as whole words ----
+
+test('month names inside other words are not months', () => {
+  const pf = (q) => parseFilters(q, DEFAULT_MONTH, USER);
+  assert.equal(pf('show me doctor visits').month, undefined);
+  assert.equal(pf('what did I spend at the supermarket').month, undefined);
+  assert.equal(pf('home decor purchases').month, undefined);
+  assert.equal(pf('marching band fees').month, undefined);
+});
+
+test('real month mentions still resolve', () => {
+  const pf = (q) => parseFilters(q, DEFAULT_MONTH, USER);
+  assert.equal(pf('dining in august').month, '2026-08');
+  assert.equal(pf('dining in aug').month, '2026-08');
+  assert.equal(pf('groceries in october').month, '2025-10');
+  assert.equal(pf('transport in sept').month, '2026-09');
+  assert.equal(pf('doctor visits in august').month, '2026-08');
+});
+
+test('a merchant containing "doctor" is found without a month filter', async () => {
+  const r = await lex('doctor clinic in august');
+  assert.deepEqual(r.rows.map((x) => x.merchant), ['City Doctor Clinic']);
+});
