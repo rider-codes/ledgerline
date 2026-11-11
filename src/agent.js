@@ -363,12 +363,7 @@ async function viaRules(userId, summary, message, ctx = {}) {
     const cats = new Set(topic.map((t) => findCategory(t)));
     const oneCategory = cats.size === 1 && !cats.has(null) && !merchant;
     const covered = topic.length === 1 ? Boolean(category || merchant) : oneCategory;
-    if (!covered) {
-      const text = await searchAnswer(userId, message, {
-        defaultMonth: A.defaultMonth(userId), ...ctx.retrieval, evalMode: !!ctx.evalMode, trace: ctx.trace,
-      });
-      return done('search', text);
-    }
+    if (!covered) return done('topic', await topicAnswer(userId, message, topic, ctx));
   }
 
   // entity-driven
@@ -392,6 +387,31 @@ function spendTopic(q) {
   if (!raw || NOT_A_TOPIC.has(raw)) return null;
   const parts = raw.split(/\s*(?:,|&|\+|\band\b)\s*/).map((s) => s.trim()).filter(Boolean);
   return parts.length ? parts : null;
+}
+
+// Spending on a free-text topic. A total is stated only when every matching row fits in the
+// result; when retrieval matches more than that, the match set is too loose to sum honestly,
+// so list the closest rows and say why there is no total.
+const TOPIC_K = 20;
+async function topicAnswer(userId, message, topic, ctx) {
+  const res = await retrieve(userId, message, {
+    defaultMonth: A.defaultMonth(userId), ...ctx.retrieval, k: TOPIC_K, evalMode: !!ctx.evalMode,
+  });
+  if (ctx.trace) ctx.trace.retrieval = summarizeRetrieval(res);
+  const label = topic.join(' and ');
+  const rows = res.rows.filter((r) => r.type === 'expense');
+  if (!rows.length) return `I couldn't find any spending on ${label}.`;
+  const line = (r) => `• ${r.date} — ${r.merchant || r.note || '—'} (${r.category}) ${fmt2(r.amount)}`;
+  const m = res.matched;
+  if (m.count <= TOPIC_K) {
+    return [`Spending on ${label}: ${fmt2(m.spend)} across ${rows.length} transaction(s):`, ...rows.slice(0, 12).map(line),
+      ...(rows.length > 12 ? [`…and ${rows.length - 12} more.`] : [])].join('\n');
+  }
+  return [
+    `I can't give a reliable total for ${label}: ${m.count} transactions loosely match, too many to sum with confidence. Closest matches:`,
+    ...rows.slice(0, 12).map(line),
+    'Try naming a category or merchant (e.g. "how much did I spend on dining") for an exact total.',
+  ].join('\n');
 }
 
 function fallback(userId, month) {

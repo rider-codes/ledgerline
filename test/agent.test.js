@@ -39,8 +39,8 @@ test('a known merchant is still answered', async () => {
 
 test('a multi-part topic is searched, not answered with the monthly total', async () => {
   const { reply: r, trace } = await ask(USER, 'how much did I spend on chipotle and nobu?');
-  assert.equal(trace.route, 'search');
-  assert.match(r, /^Found \d+ transaction/);
+  assert.equal(trace.route, 'topic');
+  assert.match(r, /^Spending on chipotle and nobu: ₹[\d,.]+ across \d+ transaction/);
   assert.match(r, /Chipotle/);
   assert.match(r, /Nobu/);
 });
