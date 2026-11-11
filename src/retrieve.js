@@ -67,15 +67,16 @@ function parseFilters(q, defaultMonth, userId) {
   if (/\b(income|deposit|deposits|paycheck|payroll|salary|refund|credited)\b/.test(s)) f.type = 'income';
   else if (/\b(expense|expenses|charge|charges|spent|purchase|purchases|debit)\b/.test(s)) f.type = 'expense';
 
-  // category
+  // category — matched on a words-only view of the question, so "dining?" and "dining," still count
+  const words = ` ${q.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
   for (const cat of KNOWN_CATS) {
-    if (s.includes(` ${cat.toLowerCase()} `)) { f.category = cat; f.consumed.add(cat.toLowerCase()); }
+    if (words.includes(` ${cat.toLowerCase()} `)) { f.category = cat; f.consumed.add(cat.toLowerCase()); }
   }
   if (!f.category) {
-    for (const [cat, words] of Object.entries(CAT_SYNONYMS)) {
-      for (const w of words) {
+    for (const [cat, syns] of Object.entries(CAT_SYNONYMS)) {
+      for (const w of syns) {
         if (BRANDS.has(w)) continue; // keep brand names as free search terms
-        if (s.includes(` ${w} `) || s.includes(` ${w}s `)) { f.category = cat; f.consumed.add(w); break; }
+        if (words.includes(` ${w} `) || words.includes(` ${w}s `)) { f.category = cat; f.consumed.add(w); break; }
       }
       if (f.category) break;
     }

@@ -87,3 +87,22 @@ test('a ₹ amount filter narrows results and leaves no stray search word', asyn
   assert.equal((await lex('charges over inr 500 in august')).mode, 'structured');
   assert.equal((await lex('charges over 500 rupees in august')).mode, 'structured');
 });
+
+// ---- bug 4: punctuation next to a category word does not hide it ----
+
+test('categories are detected next to punctuation', () => {
+  const pf = (q) => parseFilters(q, DEFAULT_MONTH, USER);
+  assert.equal(pf('how much on dining?').category, 'Dining');
+  assert.equal(pf('how much on dining').category, 'Dining');
+  assert.equal(pf('Dining, in august.').category, 'Dining');
+  assert.equal(pf('what about (shopping)?').category, 'Shopping');
+  assert.equal(pf('any restaurants?').category, 'Dining');
+  assert.equal(pf('take-out?').category, 'Dining');
+  assert.equal(pf('how much at chipotle?').category, undefined);
+});
+
+test('"dining?" filters to the category', async () => {
+  const r = await lex('how much on dining in august?');
+  assert.equal(r.mode, 'structured');
+  assert.equal(r.matched.count, 3);
+});
