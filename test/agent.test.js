@@ -35,6 +35,28 @@ test('a known merchant is still answered', async () => {
   assert.match(await reply('how much at chipotle'), /^Chipotle \(Dining\): ₹75\.00 total across 2 charges/);
 });
 
+// ---- "spend on <topic>" that is not one category or merchant goes to search, not the monthly total ----
+
+test('a multi-part topic is searched, not answered with the monthly total', async () => {
+  const { reply: r, trace } = await ask(USER, 'how much did I spend on chipotle and nobu?');
+  assert.equal(trace.route, 'search');
+  assert.match(r, /^Found \d+ transaction/);
+  assert.match(r, /Chipotle/);
+  assert.match(r, /Nobu/);
+});
+
+test('a single category topic still uses the category handler', async () => {
+  assert.match(await reply('how much did I spend on dining in august'), /^Dining in Aug 2026/);
+});
+
+test('a topic that is all one category uses the category handler', async () => {
+  assert.match(await reply('how much did I spend on lunch and dinner in august'), /^Dining in Aug 2026/);
+});
+
+test('"spend on everything" is still the monthly total', async () => {
+  assert.match(await reply('how much did I spend on everything in august'), /^You spent /);
+});
+
 test('"at least" / "at the supermarket" are not unknown merchants', async () => {
   assert.doesNotMatch(await reply('how much did I spend at least'), /don't see any transactions at/);
   // the test data has a "Supermarket Fresh" merchant, so this resolves to it

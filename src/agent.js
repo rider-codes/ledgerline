@@ -355,6 +355,22 @@ async function viaRules(userId, summary, message, ctx = {}) {
     return done('search', text);
   }
 
+  // "spend on <topic>" where the topic is not one category or merchant ("street food and sweets",
+  // "chai and snacks"): search for matching rows instead of answering with the month's overall total
+  // or with one merchant that covers only part of the topic
+  const topic = spendTopic(q);
+  if (topic && !place) {
+    const cats = new Set(topic.map((t) => findCategory(t)));
+    const oneCategory = cats.size === 1 && !cats.has(null) && !merchant;
+    const covered = topic.length === 1 ? Boolean(category || merchant) : oneCategory;
+    if (!covered) {
+      const text = await searchAnswer(userId, message, {
+        defaultMonth: A.defaultMonth(userId), ...ctx.retrieval, evalMode: !!ctx.evalMode, trace: ctx.trace,
+      });
+      return done('search', text);
+    }
+  }
+
   // entity-driven
   if (merchant && /(spend|spent|cost|how much|paid|charge|at |on )/.test(q)) return done('merchant', answerMerchant(userId, merchant, month));
   if (category) return done('category', answerCategory(userId, category, month));
@@ -363,6 +379,19 @@ async function viaRules(userId, summary, message, ctx = {}) {
   if (/(total|how much did i spend|how much have i spent|spending this|spend this|spent in|what did i spend)/.test(q)) return done('total', answerTotal(userId, month));
 
   return done('fallback', fallback(userId, month));
+}
+
+// The thing after "spend/spent/spending/paid on|for", split on "and" / "," / "&" / "+".
+// Returns null when there is none or it only names everything ("on everything", "on stuff").
+const TOPIC_STOP = /\s+(?:in|during|this|last|since|over|under|between|from|so|per|each|every)\b|[?.!]|\s*$/;
+const NOT_A_TOPIC = new Set(['everything', 'anything', 'stuff', 'things', 'all', 'average', 'total', 'it', 'that', 'this']);
+function spendTopic(q) {
+  const m = q.match(/\b(?:spen[dt]|spending|paid|pay)\s+(?:on|for)\s+(.*)$/);
+  if (!m) return null;
+  const raw = m[1].split(TOPIC_STOP)[0].replace(/^(?:my|the|our)\s+/, '').trim();
+  if (!raw || NOT_A_TOPIC.has(raw)) return null;
+  const parts = raw.split(/\s*(?:,|&|\+|\band\b)\s*/).map((s) => s.trim()).filter(Boolean);
+  return parts.length ? parts : null;
 }
 
 function fallback(userId, month) {
