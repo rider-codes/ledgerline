@@ -1,9 +1,10 @@
 'use strict';
 
 /*
- * Creates a demo account with a few months of realistic transactions.
- *   npm run seed     -> wipe the demo user's data and regenerate
- *   npm run reset    -> wipe ALL data, then regenerate the demo user
+ * Creates a demo account with over a year of realistic transactions (Jul 2025 to Sep 2026).
+ *   npm run seed                -> wipe the demo user's data and regenerate
+ *   npm run reset               -> wipe ALL data, then regenerate the demo user
+ *   npm run seed -- --legacy    -> only the original May-Sep 2026 block (what the eval was labelled on)
  *
  * Deterministic: a fixed RNG seed means the same data every run.
  */
@@ -14,6 +15,7 @@ const { db } = require('./db');
 const { learn } = require('./categorize');
 
 const RESET = process.argv.includes('--reset');
+const LEGACY = process.argv.includes('--legacy'); // only the original May-Sep 2026 block (matches the eval's demo questions)
 const DEMO_EMAIL = 'demo@example.com';
 const DEMO_PASSWORD = 'demo1234';
 const MONTHLY_INCOME = 6200;
@@ -57,10 +59,77 @@ const M = {
   Education: ['Udemy'],
 };
 
-// Fill a user with the demo dataset: ~270 transactions, a few rules and a warmed-up classifier.
+/* ---- the year before: Jul 2025 .. Apr 2026 ----
+ * Generated AFTER the May-Sep 2026 block, from its own RNG stream, so that block's rows (and their
+ * ids) are exactly what they were before this existed: the eval's demo-account questions are
+ * labelled against them. `npm run seed -- --legacy` reproduces that original dataset. */
+const HISTORY_START = '2025-07-01';
+const HISTORY_END = '2026-04-30';
+
+function addHistory(add) {
+  _s = 0x1b873593;
+  let count = 0;
+  const put = (...a) => { add(...a); count++; };
+  eachDay(HISTORY_START, HISTORY_END, (d) => {
+    const day = d.getUTCDate();
+    const month = d.getUTCMonth(); // 0-11
+    const year = d.getUTCFullYear();
+    const dow = d.getUTCDay();
+    const date = iso(d);
+    const december = month === 11; // gifts, parties, travel
+    const winter = month === 11 || month === 0 || month === 1; // heating bills
+    const raised = year === 2026; // new lease and a raise from January
+
+    // --- income and fixed costs ---
+    if (day === 1 || day === 15) put(date, (raised ? 6200 : 5900) / 2, 'income', 'Income', 'Payroll — Northwind Labs');
+    if (december && day === 20) put(date, 1500, 'income', 'Income', 'Year-end bonus — Northwind Labs');
+    if (day === 1) put(date, raised ? 1750 : 1700, 'expense', 'Housing', 'Sterling Apartments');
+    if (day === 8) put(date, winter ? money(128, 171) : money(96, 124), 'expense', 'Utilities', 'PG&E');
+    if (day === 12) put(date, raised ? 79.99 : 69.99, 'expense', 'Utilities', 'Comcast Xfinity');
+    if (day === 2) put(date, 24.99, 'expense', 'Subscriptions', 'Planet Fitness');
+    if (day === 3) put(date, raised ? 15.49 : 13.99, 'expense', 'Subscriptions', 'Netflix');
+    if (day === 5) put(date, 2.99, 'expense', 'Subscriptions', 'iCloud');
+    if (day === 7) put(date, 11.99, 'expense', 'Subscriptions', 'Spotify');
+    if (day === 9) put(date, 14.95, 'expense', 'Subscriptions', 'Audible');
+
+    // --- groceries ~2x / week, dining ~3x / week (more in December) ---
+    if (chance(2 / 7)) put(date, chance(0.15) ? money(120, 190) : money(32, 96), 'expense', 'Groceries', pick(M.Groceries));
+    for (let i = 0; i < (december ? 2 : 1); i++) {
+      if (chance(december ? 0.4 : 3 / 7)) {
+        const merchant = pick(M.Dining);
+        const amt = merchant === 'DoorDash' ? money(26, 58) : /coffee/i.test(merchant) ? money(4.5, 9.5) : money(11, 27);
+        put(date, amt, 'expense', 'Dining', merchant);
+      }
+    }
+
+    // --- transport ---
+    if (dow >= 1 && dow <= 5 && chance(0.55)) put(date, money(2.5, 8.25), 'expense', 'Transport', 'BART');
+    if (chance(1 / 12)) put(date, money(42, 66), 'expense', 'Transport', chance(0.5) ? 'Shell' : 'Chevron');
+    if (chance(1 / 14)) put(date, money(12, 29), 'expense', 'Transport', 'Lyft');
+
+    // --- shopping: ~weekly, heavier in the holiday season ---
+    if (chance(december ? 0.35 : 1 / 7)) put(date, december ? money(25, 140) : money(14, 78), 'expense', 'Shopping', pick(M.Shopping));
+    if (month === 10 && day === 28) { put(date, 94.5, 'expense', 'Shopping', 'Amazon'); put(date, 128.2, 'expense', 'Shopping', 'Amazon'); put(date, 214, 'expense', 'Shopping', 'Best Buy'); } // Black Friday
+
+    // --- occasional ---
+    if (chance(1 / 16)) put(date, money(12, 44), 'expense', 'Health', pick(M.Health));
+    if (day === 15 && month === 0) put(date, 40, 'expense', 'Health', 'Kaiser Permanente');
+    if (chance(1 / 18)) put(date, money(14, 34), 'expense', 'Entertainment', pick(M.Entertainment));
+    if (december && day === 14) put(date, 86, 'expense', 'Entertainment', 'Ticketmaster');
+    if (december && day === 21) put(date, 412, 'expense', 'Travel', 'Alaska Airlines');
+    if (december && day === 22) put(date, 248, 'expense', 'Travel', 'Marriott Hotels');
+    if (december && day === 28) put(date, 389, 'expense', 'Travel', 'Alaska Airlines');
+    if (month === 2 && day === 10) put(date, 29.99, 'expense', 'Education', 'Udemy');
+    if (month === 8 && day === 18) put(date, 12.99, 'expense', 'Education', 'Udemy');
+  });
+  return count;
+}
+
+// Fill a user with the demo dataset: Jul 2025 to Sep 2026 (~900 transactions), a few rules and a
+// warmed-up classifier. { legacy: true } gives only the original May-Sep 2026 block (~270).
 // The RNG is re-seeded on every call, so each user gets identical data. The caller owns the
 // user row (and any surrounding transaction).
-function seedUserData(uid) {
+function seedUserData(uid, { legacy = false } = {}) {
   _s = 0x9e3779b9;
   const insert = db.prepare(
     `INSERT INTO transactions (user_id, date, amount, type, category, merchant, note, source)
@@ -143,6 +212,8 @@ function seedUserData(uid) {
     if (month === 5 && day === 22) { add(date, 12.99, 'expense', 'Education', 'Udemy'); count++; }
   });
 
+  if (!legacy) count += addHistory(add);
+
   // --- a few user rules so the Rules screen isn't empty ---
   const addRule = db.prepare('INSERT INTO rules (user_id, match_text, category) VALUES (?, ?, ?)');
   [
@@ -186,9 +257,9 @@ function run() {
       .run(DEMO_EMAIL, hash, 'Demo User');
     user = { id: Number(info.lastInsertRowid) };
   }
-  const r = seedUserData(user.id);
+  const r = seedUserData(user.id, { legacy: LEGACY });
   console.log(`seeded: demo user ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
-  console.log(`        ${r.count} transactions from ${START} to ${END}`);
+  console.log(`        ${r.count} transactions from ${LEGACY ? START : HISTORY_START} to ${END}${LEGACY ? ' (legacy range)' : ''}`);
   console.log(`        ${r.rules} rules, Naive Bayes warmed with ${r.examples} examples`);
 }
 

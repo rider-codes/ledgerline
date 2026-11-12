@@ -50,7 +50,7 @@ Needs **Node.js 22.5+** (uses the built-in `node:sqlite`; the npm scripts pass t
 ```bash
 npm install
 cp .env.example .env      # optional: every setting has a default
-npm run seed              # a demo account with ~270 transactions (May to Sep 2026)
+npm run seed              # a demo account with ~850 transactions (Jul 2025 to Sep 2026)
 npm start                 # http://localhost:3000
 ```
 
@@ -62,6 +62,7 @@ Sign in with **demo@example.com** / **demo1234**, or create an account to start 
 | `npm run dev` | run with `--watch` |
 | `npm run seed` | regenerate the demo user's data |
 | `npm run reset` | wipe **all** data, then regenerate the demo user |
+| `npm run seed -- --legacy` | only the original May to Sep 2026 block (~270 rows), the data the eval's demo questions were labelled on |
 | `npm test` | 54 unit tests (retrieval, assistant routing, demo sandbox, eval scoring) |
 
 Sample files for the importer are in `public/assets/`:

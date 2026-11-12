@@ -29,20 +29,32 @@ function authForm(endpoint) {
   const demo = document.getElementById('demo');
   if (!box || !demo || !window.__DEMO__) return;
   box.hidden = false;
+  const label = demo.textContent;
+  const reset = () => { demo.disabled = false; demo.textContent = label; };
   demo.addEventListener('click', async () => {
     const err = document.getElementById('err');
     err.textContent = '';
     demo.disabled = true;
     demo.textContent = 'Setting up your sandbox…';
+    const abort = new AbortController();
+    const timer = setTimeout(() => abort.abort(), 15000); // never sit on "Setting up…" forever
     try {
-      const res = await fetch('/api/demo', { method: 'POST' });
+      const res = await fetch('/api/demo', { method: 'POST', signal: abort.signal });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Could not start the demo.');
       location.href = '/';
     } catch (ex) {
-      err.textContent = ex.message;
-      demo.disabled = false;
-      demo.textContent = 'Explore with sample data';
+      err.textContent = ex.name === 'AbortError' ? 'The demo is taking too long. Please try again.' : ex.message;
+      reset();
+    } finally {
+      clearTimeout(timer);
     }
+  });
+  // Coming back with the Back button restores this page from the browser's cache exactly as it was
+  // left, including a disabled "Setting up…" button. Put the buttons back.
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    reset();
+    document.querySelectorAll('button[type=submit]').forEach((b) => { b.disabled = false; });
   });
 })();

@@ -14,6 +14,10 @@ Add `--final` to also require exactly 50 questions, a 35/15 tune/test split, and
 
 ## Building and labelling
 
+The demo-account questions are labelled against the original seed (May to Sep 2026, 271 rows). The default
+`npm run seed` now adds Jul 2025 to Apr 2026 as well, so seed with `npm run seed -- --legacy` before snapshotting.
+The original rows and ids are identical either way; the longer dataset only adds more rows.
+
 ```bash
 node --experimental-sqlite eval/make-snapshot.js --embed     # copy of the live DB (read-only), embedded; git-ignored
 node --experimental-sqlite eval/build-questions.js           # questions.json + labeling-pools.json + labeling-worksheet.md

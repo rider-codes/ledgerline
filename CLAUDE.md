@@ -10,7 +10,7 @@ Needs Node >= 22.5 (uses `node:sqlite`, which requires the `--experimental-sqlit
 npm install
 npm start          # http://localhost:3000
 npm run dev        # same, with --watch
-npm run seed       # demo data: demo@example.com / demo1234 (~271 txns, May–Sep 2026)
+npm run seed       # demo data: demo@example.com / demo1234 (~850 txns, Jul 2025–Sep 2026; `-- --legacy` = the original 271 rows the eval is labelled on)
 npm run reset      # wipe + reseed
 ```
 

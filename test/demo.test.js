@@ -33,6 +33,29 @@ test('a sandbox gets the full sample dataset and leaves other users untouched', 
   clean();
 });
 
+test('the sample data spans more than a year, and the original May-Sep 2026 block is unchanged', () => {
+  clean();
+  const u = demo.createDemoUser();
+  const q = (sql) => db.prepare(sql).get(u.id);
+  assert.ok(q("SELECT COUNT(DISTINCT substr(date,1,7)) AS c FROM transactions WHERE user_id = ?").c >= 13);
+  assert.equal(q("SELECT COUNT(DISTINCT substr(date,1,4)) AS c FROM transactions WHERE user_id = ?").c, 2);
+  assert.ok(q("SELECT COUNT(*) AS c FROM transactions WHERE user_id = ?").c > 700);
+  // the earlier block is generated separately, so the original months keep their exact numbers
+  assert.equal(q("SELECT ROUND(SUM(amount),2) AS c FROM transactions WHERE user_id = ? AND type='expense' AND date >= '2026-05-01'").c, 17275.86);
+  assert.equal(q("SELECT ROUND(SUM(amount),2) AS c FROM transactions WHERE user_id = ? AND type='expense' AND substr(date,1,7) = '2026-08'").c, 3908.21);
+  clean();
+});
+
+test('seedUserData({ legacy: true }) gives only the original 271 rows', () => {
+  clean();
+  const id = Number(db.prepare("INSERT INTO users (email, password_hash, name) VALUES (?, '!x', 'Legacy')").run(`demo-legacy01@${demo.DOMAIN}`).lastInsertRowid);
+  const r = require('../src/seed').seedUserData(id, { legacy: true });
+  assert.equal(r.count, 271);
+  assert.equal(db.prepare('SELECT COUNT(*) AS c FROM transactions WHERE user_id = ?').get(id).c, 271);
+  assert.equal(db.prepare("SELECT MIN(date) AS d FROM transactions WHERE user_id = ?").get(id).d, '2026-05-01');
+  clean();
+});
+
 test('every visitor gets their own account with identical data', () => {
   clean();
   const a = demo.createDemoUser();
