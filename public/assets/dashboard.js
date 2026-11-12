@@ -70,6 +70,7 @@
       .join('');
   }
 
+  let lastAvg = ''; // average text from the most recent bars() call
   // compact amount for bar labels: 950, 4.3k, 1.2M
   const short = (v) => {
     const cur = (window.LL && window.LL.CUR) || '';
@@ -82,15 +83,13 @@
   //       avg: false | 'nonzero' (average over bars with spending, e.g. months with data)
   //            | 'all' (every bar counts, e.g. days — matches the Avg / day card), avgLabel
   function bars(items, valueOf, labelOf, opts = {}) {
-    const { highlight = -1, values = false, avg = false, avgLabel = 'avg' } = opts;
+    const { highlight = -1, values = false, avg = false, avgLabel = '' } = opts;
     const vals = items.map(valueOf);
     const max = Math.max(1, ...vals);
     const pool = avg === 'all' ? vals : vals.filter((v) => v > 0);
     const mean = avg && pool.length > 1 && pool.some((v) => v > 0) ? pool.reduce((s, v) => s + v, 0) / pool.length : null;
-    // 186px track, 16px label row, 8px gap between them (see .bar-track / .bar-lbl / .bar-col)
-    const mark = mean == null ? ''
-      : `<i class="avg-mark" style="bottom:calc(24px + ${((mean / max) * 186).toFixed(1)}px)"><span class="avg-tag">${avgLabel} ${short(mean)}</span></i>`;
-    return `<div class="bars ${items.length > 14 ? 'dense' : ''}">${mark}${items
+    lastAvg = mean == null ? '' : ` · avg ${short(mean)}${avgLabel}`; // shown in the chart subtitle, not drawn over the bars
+    return `<div class="bars ${items.length > 14 ? 'dense' : ''}">${items
       .map((it, i) => {
         const v = vals[i];
         const on = i === highlight;
@@ -111,23 +110,24 @@
       let last = -1;
       d.monthly.forEach((m, i) => { if (m.spend > 0) last = i; });
       $('#time-sub').textContent = `By month · ${d.month}`;
-      $('#chart-time').innerHTML = bars(d.monthly, (m) => m.spend, monthName, { highlight: last, values: true, avg: 'nonzero', avgLabel: 'avg/mo' });
+      $('#chart-time').innerHTML = bars(d.monthly, (m) => m.spend, monthName, { highlight: last, values: true, avg: 'nonzero', avgLabel: '/mo' });
     } else if (state.year) {
       $('#time-sub').textContent = d.yearly.length > 1 ? `Last ${d.yearly.length} years` : 'Only one year of data so far';
       $('#chart-time').innerHTML = bars(d.yearly, (y) => y.spend, (y) => y.month, {
-        highlight: d.yearly.findIndex((y) => y.month === d.month), values: true, avg: 'nonzero', avgLabel: 'avg/yr',
+        highlight: d.yearly.findIndex((y) => y.month === d.month), values: true, avg: 'nonzero', avgLabel: '/yr',
       });
     } else if (state.mode === 'monthly') {
       $('#time-sub').textContent = 'Last 6 months';
       $('#chart-time').innerHTML = bars(d.monthly, (m) => m.spend, (m, full) => (full ? m.label : m.label.split(' ')[0]), {
-        highlight: d.monthly.length - 1, values: true, avg: 'nonzero', avgLabel: 'avg/mo',
+        highlight: d.monthly.length - 1, values: true, avg: 'nonzero', avgLabel: '/mo',
       });
     } else {
       $('#time-sub').textContent = `Daily · ${fmtMonth(d.month)}`;
       $('#chart-time').innerHTML = bars(d.daily, (x) => x.spend, (x, full) => (full ? x.date : x.day % 5 === 1 ? x.day : ''), {
-        avg: 'all', avgLabel: 'avg/day',
+        avg: 'all', avgLabel: '/day',
       });
     }
+    $('#time-sub').textContent += lastAvg;
   }
 
   function renderCat(cats) {

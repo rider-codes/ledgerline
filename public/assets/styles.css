@@ -138,7 +138,7 @@ select option { background:var(--panel); }
 .muted { color:var(--text-3); }
 
 /* ---------- charts (CSS/SVG) ---------- */
-.bars { display:flex; align-items:flex-end; gap:clamp(3px, 1.4vw, 14px); height:220px; padding-top:14px; }
+.bars { display:flex; align-items:flex-end; gap:clamp(3px, 1.4vw, 14px); height:220px; padding-top:26px; }
 .bar-col { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:8px; }
 .bar-track { width:100%; max-width:46px; height:186px; display:flex; align-items:flex-end; position:relative; }
 .bar {
@@ -156,15 +156,7 @@ select option { background:var(--panel); }
   background:var(--panel); padding:0 3px; border-radius:3px; z-index:2; /* sits above the average line */
 }
 .bar.on .bar-val { color:var(--text); }
-.bars { position:relative; }
 .bars.dense { gap:2px; }
-/* one dashed average line across the chart; its bottom offset = label row (16px) + col gap (8px) + share of the 186px track */
-.avg-mark { position:absolute; left:0; right:0; border-top:1px dashed rgba(240,136,62,0.6); pointer-events:none; z-index:1; }
-.avg-tag {
-  position:absolute; right:0; bottom:100%; margin-bottom:3px; font-family:"Space Grotesk", system-ui, sans-serif;
-  font-size:11px; font-weight:500; font-style:normal; font-variant-numeric:tabular-nums;
-  color:var(--amber); white-space:nowrap; background:var(--panel); padding:0 4px; border-radius:3px;
-}
 .bar-lbl { font-size:11px; line-height:16px; height:16px; color:var(--text-3); white-space:nowrap; }
 .bar-col.on .bar-lbl { color:var(--text); font-weight:500; }
 .donut { width:118px; height:118px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
