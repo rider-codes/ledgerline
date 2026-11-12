@@ -11,8 +11,28 @@ const { CAT_SYNONYMS, MONTH_NAMES, BRANDS, STOPWORDS, tokenize } = require('./vo
 const embed = require('./embed');
 
 const MAX_ROWS = () => Math.max(5, Math.min(120, parseInt(process.env.RAG_MAX_ROWS || '40', 10)));
+// Rows scored per query. High enough to cover a whole account (imports are capped at 20,000 rows),
+// so old transactions are ranked too; it is only a safety bound.
+const MAX_CANDIDATES = () => Math.max(100, parseInt(process.env.RAG_MAX_CANDIDATES || '20000', 10) || 20000);
 const CUR = () => process.env.CURRENCY || '$';
 const money = (n) => `${CUR()}${Number(n).toFixed(2)}`;
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const CUR_SYMBOLS = () => [...new Set(['$', '₹', '€', '£', CUR()])];
+const CUR_MARK = () => `(?:${CUR_SYMBOLS().map(escapeRe).join('|')}|\\brs\\.?|\\binr)?`;
+
+// what follows a number when it is a duration, count or ordinal rather than money
+const NOT_MONEY_NEXT = /^\s*(?:months?|days?|weeks?|years?|yrs?|hours?|times?|x\b|%|percent|(?:st|nd|rd|th)\b)/;
+
+const GENERIC_TYPE_WORDS = ['income', 'deposit', 'deposits', 'credited', 'expense', 'expenses', 'charge', 'charges', 'spent', 'purchase', 'purchases', 'debit', 'debits'];
+const TX_NOUN = '(?:charges?|purchases?|transactions?|expenses?|payments?|deposits?)';
+const SORT_CUES = [
+  ['amount_desc', new RegExp(`\\b(?:largest|biggest|highest|priciest|most expensive)\\b|\\btop(?=\\s+(?:\\d+\\s+)?(?:\\w+\\s+)?${TX_NOUN}\\b)`)],
+  ['amount_asc', /\b(?:smallest|lowest|cheapest|least expensive)\b/],
+  ['date_asc', /\b(?:oldest|earliest)\b/],
+  ['date_desc', /\b(?:latest|newest|most recent)\b/],
+];
+const ORDER_BY = { amount_desc: 'amount DESC, date DESC', amount_asc: 'amount ASC, date DESC', date_asc: 'date ASC', date_desc: 'date DESC' };
 
 const KNOWN_CATS = new Set(CATEGORIES);
 
@@ -22,58 +42,163 @@ function parseFilters(q, defaultMonth, userId) {
   const s = ` ${q.toLowerCase()} `;
   const f = { consumed: new Set() };
 
-  // amount comparisons
-  const num = '\\$?\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)';
+  // amount comparisons — an optional currency marker ($, ₹, €, £, the configured symbol, "rs", "inr") then the number
+  const num = `(${CUR_MARK()})\\s*([0-9][0-9,]*(?:\\.[0-9]{1,2})?)`;
+  // First number after one of `keywords` that reads as money: not a count of time ("for 3 months",
+  // "over 2 weeks"), and — for weak cues like "of"/"for" — only when written as money ("for ₹45", "of 45.50").
+  const amountSpans = []; // [start, end) of every number read as an amount, so it is not also read as a year
+  const amountAfter = (keywords, { weak = false } = {}) => {
+    const re = new RegExp(`(?:${keywords})\\s*${num}`, 'g');
+    let hit;
+    while ((hit = re.exec(s))) {
+      const rest = s.slice(hit.index + hit[0].length);
+      if (/^\.?\d/.test(rest) || NOT_MONEY_NEXT.test(rest)) continue;
+      if (weak && !hit[1] && !hit[2].includes('.')) continue;
+      const end = hit.index + hit[0].length;
+      amountSpans.push([end - hit[2].length, end]);
+      return parseFloat(hit[2].replace(/,/g, ''));
+    }
+    return null;
+  };
   let m;
-  if ((m = s.match(new RegExp(`between\\s+${num}\\s+and\\s+${num}`)))) {
-    f.minAmount = parseFloat(m[1].replace(/,/g, ''));
-    f.maxAmount = parseFloat(m[2].replace(/,/g, ''));
+  if ((m = s.match(new RegExp(`\\bbetween\\s+${num}\\s+and\\s+${num}`))) && !NOT_MONEY_NEXT.test(s.slice(m.index + m[0].length))) {
+    f.minAmount = parseFloat(m[2].replace(/,/g, ''));
+    f.maxAmount = parseFloat(m[4].replace(/,/g, ''));
+    const end = m.index + m[0].length;
+    const first = m.index + m[0].indexOf(m[2]);
+    amountSpans.push([first, first + m[2].length], [end - m[4].length, end]);
     f.consumed.add('between');
     f.consumed.add('and');
   } else {
-    if ((m = s.match(new RegExp(`(?:over|above|more than|greater than|at least|>=?|\\bmin(?:imum)?)\\s+${num}`)))) f.minAmount = parseFloat(m[1].replace(/,/g, ''));
-    if ((m = s.match(new RegExp(`(?:under|below|less than|at most|<=?|\\bmax(?:imum)?)\\s+${num}`)))) f.maxAmount = parseFloat(m[1].replace(/,/g, ''));
-    if ((m = s.match(new RegExp(`(?:exactly|of|for|around|about|~)\\s+${num}\\b`)))) {
-      const v = parseFloat(m[1].replace(/,/g, ''));
-      f.minAmount = v - 0.5;
-      f.maxAmount = v + 0.5;
+    const min = amountAfter('\\b(?:over|above|more than|greater than|at least|min(?:imum)?)\\s|>=?');
+    const max = amountAfter('\\b(?:under|below|less than|at most|max(?:imum)?)\\s|<=?');
+    const exact = amountAfter('\\b(?:exactly|around|about)\\s|~') ?? amountAfter('\\b(?:of|for)\\s', { weak: true });
+    if (min != null) f.minAmount = min;
+    if (max != null) f.maxAmount = max;
+    if (exact != null) {
+      f.minAmount = exact - 0.5;
+      f.maxAmount = exact + 0.5;
     }
   }
-  (s.match(/\$?\s*[0-9][0-9,]*(?:\.[0-9]{1,2})?/g) || []).forEach((tok) => f.consumed.add(tok.replace(/[^0-9.]/g, '')));
+  (s.match(/[0-9][0-9,]*(?:\.[0-9]{1,2})?/g) || []).forEach((tok) => f.consumed.add(tok.replace(/[^0-9.]/g, '')));
 
-  // month / date window
-  if (/last month|previous month|month before/.test(s) && defaultMonth) f.month = addMonths(defaultMonth, -1);
-  else if (/this month|current month/.test(s) && defaultMonth) f.month = defaultMonth;
-  const iso = s.match(/\b(20\d{2})-(0[1-9]|1[0-2])\b/);
-  if (iso) f.month = iso[0];
-  const months = distinctMonths(userId);
-  for (let i = 0; i < 12; i++) {
-    if (s.includes(MONTH_NAMES[i]) || s.includes(MONTH_NAMES[i].slice(0, 3))) {
-      const hit = months.filter((mm) => Number(mm.slice(5, 7)) === i + 1).sort().pop();
-      if (hit) f.month = hit;
-      f.consumed.add(MONTH_NAMES[i]);
-      f.consumed.add(MONTH_NAMES[i].slice(0, 3));
-    }
+  // dates — every month the question names (ranges and years included), or whole years
+  const dates = parseDates(s, defaultMonth, distinctMonths(userId), amountSpans);
+  if (dates.months.length) {
+    f.months = dates.months;
+    if (dates.months.length === 1) f.month = dates.months[0];
+  } else if (dates.years.length) {
+    f.years = dates.years;
   }
+  dates.consumed.forEach((w) => f.consumed.add(w));
 
   // type
   if (/\b(income|deposit|deposits|paycheck|payroll|salary|refund|credited)\b/.test(s)) f.type = 'income';
   else if (/\b(expense|expenses|charge|charges|spent|purchase|purchases|debit)\b/.test(s)) f.type = 'expense';
+  // Generic type words have done their job as a filter and are not search terms ("deposits" is in no
+  // merchant name). Words that can also name a transaction — payroll, salary, refund — stay searchable.
+  for (const w of GENERIC_TYPE_WORDS) if (new RegExp(`\\b${w}\\b`).test(s)) f.consumed.add(w);
 
-  // category
-  for (const cat of KNOWN_CATS) {
-    if (s.includes(` ${cat.toLowerCase()} `)) { f.category = cat; f.consumed.add(cat.toLowerCase()); }
+  // ordering words ("largest", "cheapest", "oldest") say how to sort, not what to search for
+  for (const [sort, re] of SORT_CUES) {
+    const hit = s.match(re);
+    if (!hit) continue;
+    f.sort = sort;
+    hit[0].split(/\s+/).forEach((w) => f.consumed.add(w));
+    break;
   }
-  if (!f.category) {
-    for (const [cat, words] of Object.entries(CAT_SYNONYMS)) {
-      for (const w of words) {
+
+  // category — matched on a words-only view of the question, so "dining?" and "dining," still count
+  const words = ` ${q.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  // every category named outright ("dining and groceries"); failing that, every category a synonym points to
+  const cats = [...KNOWN_CATS].filter((cat) => words.includes(` ${cat.toLowerCase()} `));
+  cats.forEach((cat) => f.consumed.add(cat.toLowerCase()));
+  if (!cats.length) {
+    for (const [cat, syns] of Object.entries(CAT_SYNONYMS)) {
+      for (const w of syns) {
         if (BRANDS.has(w)) continue; // keep brand names as free search terms
-        if (s.includes(` ${w} `) || s.includes(` ${w}s `)) { f.category = cat; f.consumed.add(w); break; }
+        if (words.includes(` ${w} `) || words.includes(` ${w}s `)) { cats.push(cat); f.consumed.add(w); break; }
       }
-      if (f.category) break;
     }
   }
+  if (cats.length) {
+    f.categories = cats;
+    if (cats.length === 1) f.category = cats[0];
+  }
   return f;
+}
+
+const MONTH_ALT = MONTH_NAMES.map((n, i) => `${n}|${n.slice(0, 3)}${i === 8 ? '|sept' : ''}`).join('|');
+const toYm = (year, month) => `${year}-${String(month).padStart(2, '0')}`;
+
+// Every month or year a question names.
+//  - A month may carry its year ("march 2018", "2018-03"). Without one it takes the only year mentioned
+//    elsewhere in the question, else its latest occurrence in the user's data, else the most recent such
+//    month — so a month with no data stays a real filter that matches nothing, instead of being dropped.
+//  - "june to august" and "between june and august" expand to the whole range.
+//  - Years with no month ("in 2017") are returned as years; numbers already read as amounts are not years.
+function parseDates(s, defaultMonth, dataMonths, amountSpans = []) {
+  const consumed = [];
+  const mentions = []; // { start, end, ym, year } or { start, end, idx, year }
+  let m;
+  const isoRe = /\b((?:19|20)\d{2})-(0[1-9]|1[0-2])\b/g;
+  while ((m = isoRe.exec(s))) mentions.push({ start: m.index, end: m.index + m[0].length, ym: m[0], year: Number(m[1]) });
+  // whole words only: "doctor" is not October and "supermarket" is not March
+  const nameRe = new RegExp(`\\b(${MONTH_ALT})\\b\\.?(?:,?\\s+(?:of\\s+)?((?:19|20)\\d{2})\\b)?`, 'g');
+  while ((m = nameRe.exec(s))) {
+    const idx = MONTH_NAMES.findIndex((n) => n.slice(0, 3) === m[1].slice(0, 3));
+    mentions.push({ start: m.index, end: m.index + m[0].length, idx, year: m[2] ? Number(m[2]) : null });
+    consumed.push(MONTH_NAMES[idx], MONTH_NAMES[idx].slice(0, 3), m[1]);
+  }
+  if (defaultMonth) {
+    for (const [re, delta] of [[/\b(?:last|previous) month\b|\bmonth before\b/, -1], [/\b(?:this|current) month\b/, 0]]) {
+      const hit = s.match(re);
+      if (hit) mentions.push({ start: hit.index, end: hit.index + hit[0].length, ym: addMonths(defaultMonth, delta), year: null });
+    }
+  }
+  mentions.sort((a, b) => a.start - b.start);
+
+  const priceBefore = new RegExp(`(?:${CUR_SYMBOLS().map(escapeRe).join('|')}|\\brs\\.?|\\binr)\\s*$`);
+  const bareYears = [];
+  const yearRe = /\b(?:19|20)\d{2}\b/g;
+  while ((m = yearRe.exec(s))) {
+    const i = m.index;
+    if (mentions.some((x) => i >= x.start && i < x.end) || amountSpans.some(([a, b]) => i >= a && i < b)) continue;
+    const before = s.slice(0, i);
+    if (/[\d.,]$/.test(before) || priceBefore.test(before) || /^[.,]\d/.test(s.slice(i + 4))) continue; // part of a number or a price
+    bareYears.push(Number(m[0]));
+  }
+  const years = [...new Set([...mentions.map((x) => x.year).filter(Boolean), ...bareYears])].sort();
+
+  const onlyYear = years.length === 1 ? years[0] : null;
+  const ref = dataMonths[dataMonths.length - 1] || defaultMonth || new Date().toISOString().slice(0, 7);
+  const resolve = (x) => {
+    if (x.ym) return x.ym;
+    const mo = x.idx + 1;
+    if (x.year) return toYm(x.year, mo);
+    if (onlyYear) return toYm(onlyYear, mo);
+    const inData = dataMonths.filter((d) => Number(d.slice(5, 7)) === mo).pop();
+    if (inData) return inData;
+    const [refYear, refMonth] = ref.split('-').map(Number);
+    return toYm(mo <= refMonth ? refYear : refYear - 1, mo);
+  };
+
+  const months = new Set();
+  for (let i = 0; i < mentions.length; i++) {
+    const a = mentions[i];
+    const b = mentions[i + 1];
+    const gap = b ? s.slice(a.end, b.start).trim() : null;
+    const isRange = b && (/^(?:to|through|thru|until|till|-|–|—)$/.test(gap) || (gap === 'and' && /\bbetween\s+$/.test(s.slice(0, a.start))));
+    if (!isRange) { months.add(resolve(a)); continue; }
+    let from = resolve(a);
+    let to = resolve(b);
+    if (from > to && addMonths(from, -12) <= to) from = addMonths(from, -12); // "november to february"
+    if (from > to) [from, to] = [to, from];
+    for (let cur = from, n = 0; cur <= to && n < 240; cur = addMonths(cur, 1), n++) months.add(cur);
+    if (/^[a-z]+$/.test(gap)) consumed.push(gap);
+    i++;
+  }
+  return { months: [...months].sort(), years: months.size ? [] : years, consumed };
 }
 
 function addMonths(ym, delta) {
@@ -130,98 +255,221 @@ function score(candidates, queryTerms) {
 
 /* ---------------- public ---------------- */
 
+const MODES = ['auto', 'lexical', 'semantic', 'hybrid'];
+
+/**
+ * retrieve(userId, query, opts)
+ *
+ * opts.k            rows to return (default RAG_MAX_ROWS)
+ * opts.defaultMonth YYYY-MM that "this month"/"last month" resolve against
+ * opts.mode         'auto'     (default) the app's own logic: structured if no free-text terms,
+ *                              else hybrid when embeddings work, else lexical
+ *                   'lexical'  SQL filters + BM25-lite only (never touches embeddings)
+ *                   'semantic' SQL filters + cosine only; rows below semMin are dropped
+ *                   'hybrid'   SQL filters + (1-weight)*lexical + weight*cosine, always embeds
+ *                   (opts.semantic === false is the legacy spelling of 'lexical')
+ * opts.weight       semantic weight for 'hybrid' (default RAG_SEMANTIC_WEIGHT)
+ * opts.semMin       cosine cut-off (default RAG_SEMANTIC_MIN)
+ * opts.evalMode     never write embeddings; throw if semantic search is needed but fails or
+ *                   any candidate lacks a current vector (no silent keyword-only fallback)
+ *
+ * Legacy result fields are unchanged. Added: requestedMode, scores[], matchCount,
+ * sqlTotals, candidateCount, qualifiedCount, truncatedCandidates, semantic, params.
+ * Note `totalSpend`/`totalIncome` are sums over the *returned* rows; `sqlTotals` is the
+ * true total over every row passing the structured filters.
+ */
 async function retrieve(userId, query, opts = {}) {
   const k = opts.k || MAX_ROWS();
+  const requested = opts.mode || (opts.semantic === false ? 'lexical' : 'auto');
+  if (!MODES.includes(requested)) throw new Error(`unknown retrieval mode "${requested}" (expected ${MODES.join('|')})`);
+  const evalMode = !!opts.evalMode;
+  const weight = opts.weight != null ? Math.max(0, Math.min(1, Number(opts.weight))) : embed.SEM_WEIGHT();
+  const semMin = opts.semMin != null ? Number(opts.semMin) : embed.SEM_MIN();
   const f = parseFilters(String(query || ''), opts.defaultMonth, userId);
 
   const where = ['user_id = ?'];
   const args = [userId];
-  if (f.month) { where.push('substr(date,1,7) = ?'); args.push(f.month); }
+  const marks = (list) => list.map(() => '?').join(',');
+  if (f.months) { where.push(`substr(date,1,7) IN (${marks(f.months)})`); args.push(...f.months); }
+  else if (f.years) { where.push(`substr(date,1,4) IN (${marks(f.years)})`); args.push(...f.years.map(String)); }
   if (f.type) { where.push('type = ?'); args.push(f.type); }
-  if (f.category) { where.push('category = ?'); args.push(f.category); }
+  if (f.categories) { where.push(`category IN (${marks(f.categories)})`); args.push(...f.categories); }
   if (f.minAmount != null) { where.push('amount >= ?'); args.push(f.minAmount); }
   if (f.maxAmount != null) { where.push('amount <= ?'); args.push(f.maxAmount); }
 
-  const candidates = db
-    .prepare(`SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE ${where.join(' AND ')} ORDER BY date DESC LIMIT 800`)
-    .all(...args);
+  // ground truth for the structured filters, uncapped (the candidate list below is capped)
+  const agg = db
+    .prepare(
+      `SELECT COUNT(*) AS n,
+              COALESCE(SUM(CASE WHEN type = 'expense' THEN amount END), 0) AS spend,
+              COALESCE(SUM(CASE WHEN type = 'income' THEN amount END), 0) AS income
+       FROM transactions WHERE ${where.join(' AND ')}`
+    )
+    .get(...args);
+  const sqlTotals = { count: agg.n, spend: agg.spend, income: agg.income };
 
-  if (!candidates.length) return { rows: [], filters: f, count: 0, mode: 'none' };
+  const candidates = db
+    .prepare(`SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE ${where.join(' AND ')} ORDER BY ${ORDER_BY[f.sort] || ORDER_BY.date_desc} LIMIT ?`)
+    .all(...args, MAX_CANDIDATES());
+
+  const semantic = { requested: false, used: false, error: null };
+  const meta = {
+    requestedMode: requested, k, params: { weight, semMin }, matchCount: agg.n, sqlTotals,
+    candidateCount: candidates.length, truncatedCandidates: agg.n > candidates.length, semantic,
+  };
+  // eval diagnostics only: which rows survived the SQL filters (and the candidate bound)
+  if (evalMode) meta.candidateIds = candidates.map((r) => r.id);
+
+  if (!candidates.length) {
+    return { rows: [], scores: [], filters: f, count: 0, mode: 'none', qualifiedCount: 0, matched: { count: 0, spend: 0, income: 0 }, ...meta };
+  }
 
   // free-text terms: drop $ and numbers first, then stopwords / consumed / anything with a digit
-  const cleaned = String(query).replace(/\$/g, ' ').replace(/[0-9][0-9,.]*/g, ' ');
+  const cleaned = CUR_SYMBOLS().reduce((t, sym) => t.split(sym).join(' '), String(query)).replace(/[0-9][0-9,.]*/g, ' ');
   const qTerms = [...new Set(
     tokenize(cleaned).filter((t) => t.length >= 3 && !/\d/.test(t) && !STOPWORDS.has(t) && !f.consumed.has(t))
   )];
 
-  let ranked;
+  // every ranked entry: { r, s (final), lex (raw BM25-lite|null), lexN, sem (cosine|null) }
+  let qualified;
   let mode = 'lexical';
-  if (!qTerms.length) {
-    // purely structured query — take the filtered rows newest-first
-    ranked = candidates.slice(0, k).map((r) => ({ r, s: 1 }));
+  const structuredPath = !qTerms.length && (requested === 'auto' || requested === 'lexical');
+  if (structuredPath) {
+    // purely structured query — take the filtered rows in the requested order (newest-first by default)
+    qualified = candidates.map((r) => ({ r, s: 1, lex: null, lexN: null, sem: null, structured: true }));
     mode = 'structured';
   } else {
     const lex = score(candidates, qTerms); // [{ r, s }]
     const maxLex = Math.max(0, ...lex.map((x) => x.s));
+    const lexOnly = () => lex.filter((x) => x.s > 0)
+      .map(({ r, s }) => ({ r, s, lex: s, lexN: maxLex ? s / maxLex : 0, sem: null }))
+      .sort((a, b) => b.s - a.s);
 
+    // does this request want embeddings? 'auto' only asks when there are free-text terms
+    const wantSemantic = requested === 'semantic' || requested === 'hybrid' || (requested === 'auto' && qTerms.length > 0);
+    // in evalMode an explicit semantic/hybrid request must succeed; 'auto' must succeed only when embeddings are enabled
+    const strict = evalMode && (requested !== 'auto' || embed.enabled());
+    semantic.requested = wantSemantic;
     let sem = null;
-    if (opts.semantic !== false) {
-      try { sem = await embed.semanticScores(candidates, query); } catch { sem = null; }
+    if (wantSemantic) {
+      try {
+        sem = await embed.semanticScores(candidates, query, evalMode ? { readOnly: true, strict } : undefined);
+      } catch (e) {
+        if (strict) throw e;
+        semantic.error = e.message;
+        sem = null;
+      }
+      if (!sem && !semantic.error) semantic.error = 'semantic scores unavailable (embeddings disabled or unreachable)';
     }
 
-    if (sem) {
+    if (sem && requested === 'semantic') {
+      mode = 'semantic';
+      semantic.used = true;
+      qualified = lex
+        .map(({ r, s }) => {
+          const semV = Math.max(0, sem.get(r.id) ?? 0);
+          return { r, s: semV, lex: s, lexN: maxLex ? s / maxLex : 0, sem: semV };
+        })
+        .filter((x) => x.sem >= semMin)
+        .sort((a, b) => b.s - a.s);
+    } else if (sem) {
       mode = 'hybrid';
-      const w = embed.SEM_WEIGHT();
-      const min = embed.SEM_MIN();
-      ranked = lex
+      semantic.used = true;
+      qualified = lex
         .map(({ r, s }) => {
           const lexN = maxLex ? s / maxLex : 0;
           const semV = Math.max(0, sem.get(r.id) ?? 0);
-          const qualifies = s > 0 || semV >= min;
-          return { r, s: (1 - w) * lexN + w * semV, qualifies };
+          const qualifies = s > 0 || semV >= semMin;
+          return { r, s: (1 - weight) * lexN + weight * semV, lex: s, lexN, sem: semV, qualifies };
         })
         .filter((x) => x.qualifies)
-        .sort((a, b) => b.s - a.s)
-        .slice(0, k);
+        .sort((a, b) => b.s - a.s);
+    } else if (!qTerms.length) {
+      // semantic/hybrid requested, embeddings unavailable (non-eval only), and nothing lexical to rank on
+      qualified = candidates.map((r) => ({ r, s: 1, lex: null, lexN: null, sem: null, structured: true }));
+      mode = 'structured';
     } else {
-      ranked = lex.filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, k);
+      qualified = lexOnly();
     }
     // nothing matched: don't dump unrelated rows — return empty (honest)
   }
 
+  const ranked = qualified.slice(0, k);
   const rows = ranked.map((x) => x.r);
+  const scores = ranked.map((x) => ({
+    id: x.r.id,
+    final: x.structured ? null : x.s,
+    lex: x.lex, lexN: x.lexN, sem: x.sem,
+  }));
   const totalSpend = rows.filter((r) => r.type === 'expense').reduce((a, r) => a + r.amount, 0);
   const totalIncome = rows.filter((r) => r.type === 'income').reduce((a, r) => a + r.amount, 0);
-  return { rows, filters: f, count: rows.length, totalSpend, totalIncome, mode, truncated: candidates.length > rows.length && ranked.length === k };
+  // Every row that matched, not just the k returned. When the filters alone decide the match, the
+  // SQL aggregate is exact; otherwise sum over all rows that qualified.
+  const sumQualified = (type) => qualified.reduce((a, x) => (x.r.type === type ? a + x.r.amount : a), 0);
+  const matched = mode === 'structured'
+    ? { count: sqlTotals.count, spend: sqlTotals.spend, income: sqlTotals.income }
+    : { count: qualified.length, spend: sumQualified('expense'), income: sumQualified('income') };
+  return {
+    rows, scores, filters: f, count: rows.length, totalSpend, totalIncome, matched, mode,
+    truncated: matched.count > rows.length,
+    qualifiedCount: qualified.length,
+    ...meta,
+  };
+}
+
+// Compact, JSON-safe description of a retrieve() result for traces and eval logs.
+function summarizeRetrieval(res) {
+  return {
+    requestedMode: res.requestedMode, mode: res.mode, k: res.k, params: res.params,
+    filters: { ...res.filters, consumed: [...res.filters.consumed].sort() },
+    rowIds: res.rows.map((r) => r.id),
+    scores: res.scores,
+    shown: { count: res.count, spend: res.totalSpend ?? 0, income: res.totalIncome ?? 0 },
+    matched: res.matched,
+    matchCount: res.matchCount, sqlTotals: res.sqlTotals,
+    candidateCount: res.candidateCount, qualifiedCount: res.qualifiedCount,
+    truncatedCandidates: res.truncatedCandidates, truncated: res.truncated ?? false,
+    semantic: res.semantic,
+  };
 }
 
 function formatForPrompt(result) {
   if (!result.rows.length) return 'RELEVANT TRANSACTIONS: none matched this question.';
-  const head = `RELEVANT TRANSACTIONS (retrieved for this question — ${result.count} rows`
-    + (result.totalSpend ? `, ${money(result.totalSpend)} spent` : '')
-    + (result.totalIncome ? `, ${money(result.totalIncome)} in` : '')
+  // counts and totals cover every matching transaction, not only the rows listed below
+  const m = result.matched;
+  const more = m.count - result.rows.length;
+  const head = `RELEVANT TRANSACTIONS (retrieved for this question — ${m.count} matched`
+    + (more > 0 ? `, the ${result.rows.length} most relevant listed` : '')
+    + (m.spend ? `, ${money(m.spend)} spent in total` : '')
+    + (m.income ? `, ${money(m.income)} in in total` : '')
     + `):`;
   const lines = result.rows.map(
     (r) => `- ${r.date} | ${r.merchant || r.note || '—'} | ${r.category} | ${r.type === 'income' ? '+' : '-'}${money(r.amount)}`
   );
-  if (result.truncated) lines.push('- …(more matches not shown)');
+  if (more > 0) lines.push(`- …(${more} more matches not listed; the totals above include them)`);
   return `${head}\n${lines.join('\n')}`;
 }
 
 // Deterministic answer for the rules backend when the question is a search.
 async function searchAnswer(userId, query, opts = {}) {
-  const res = await retrieve(userId, query, { ...opts, k: Math.min(20, opts.k || 20) });
+  const { trace, ...retrieveOpts } = opts;
+  const res = await retrieve(userId, query, { ...retrieveOpts, k: Math.min(20, opts.k || 20) });
+  if (trace) trace.retrieval = summarizeRetrieval(res);
   if (!res.rows.length) return `I couldn't find any transactions matching that.`;
   const parts = [];
   const bits = [];
-  if (res.filters.category) bits.push(res.filters.category);
-  if (res.filters.month) bits.push(res.filters.month);
+  const fm = res.filters.months;
+  if (res.filters.categories) bits.push(res.filters.categories.join(' + '));
+  if (fm) bits.push(fm.length > 2 ? `${fm[0]} to ${fm[fm.length - 1]}` : fm.join(' + '));
+  if (res.filters.years) bits.push(res.filters.years.join(' + '));
   if (res.filters.minAmount != null) bits.push(`≥ ${money(res.filters.minAmount)}`);
   if (res.filters.maxAmount != null) bits.push(`≤ ${money(res.filters.maxAmount)}`);
-  parts.push(`Found ${res.count} transaction(s)${bits.length ? ` (${bits.join(', ')})` : ''}${res.totalSpend ? `, ${money(res.totalSpend)} spent` : ''}${res.totalIncome ? `, ${money(res.totalIncome)} in` : ''}:`);
+  // count and totals cover every match; only the first 12 rows are listed
+  const m = res.matched;
+  parts.push(`Found ${m.count} transaction(s)${bits.length ? ` (${bits.join(', ')})` : ''}${m.spend ? `, ${money(m.spend)} spent` : ''}${m.income ? `, ${money(m.income)} in` : ''}:`);
   res.rows.slice(0, 12).forEach((r) => parts.push(`• ${r.date} — ${r.merchant || r.note || '—'} (${r.category}) ${r.type === 'income' ? '+' : '−'}${money(r.amount)}`));
-  if (res.count > 12) parts.push(`…and ${res.count - 12} more.`);
+  if (m.count > 12) parts.push(`…and ${m.count - 12} more.`);
   return parts.join('\n');
 }
 
-module.exports = { retrieve, formatForPrompt, searchAnswer, parseFilters };
+module.exports = { retrieve, formatForPrompt, searchAnswer, parseFilters, parseDates, summarizeRetrieval, MODES };

@@ -16,8 +16,9 @@ const enabled = () => String(process.env.EMBED_ENABLED || '').toLowerCase() === 
   || (process.env.EMBED_ENABLED == null && (process.env.AI_BACKEND || '').toLowerCase() === 'ollama');
 const model = () => process.env.EMBED_MODEL || 'nomic-embed-text';
 const ollamaUrl = () => (process.env.OLLAMA_URL || 'http://localhost:11434').replace(/\/$/, '');
-const SEM_WEIGHT = () => Math.max(0, Math.min(1, parseFloat(process.env.RAG_SEMANTIC_WEIGHT || '0.5')));
-const SEM_MIN = () => parseFloat(process.env.RAG_SEMANTIC_MIN || '0.5');
+// Defaults chosen by eval/tune.js on the tuning split (see eval/results/tuning.md).
+const SEM_WEIGHT = () => Math.max(0, Math.min(1, parseFloat(process.env.RAG_SEMANTIC_WEIGHT || '1')));
+const SEM_MIN = () => parseFloat(process.env.RAG_SEMANTIC_MIN || '0.6');
 
 /* ---------------- Ollama calls ---------------- */
 
@@ -73,7 +74,8 @@ function cosine(a, b) {
   return s;
 }
 const toBlob = (vec) => Buffer.from(Float32Array.from(vec).buffer);
-const fromBlob = (buf) => Array.from(new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4));
+// copy into an aligned Float32Array (no per-element boxing, so scoring a whole account stays cheap)
+const fromBlob = (buf) => new Float32Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
 
 /* ---------------- document text + hashing ---------------- */
 
@@ -105,13 +107,18 @@ function storeVectors(rows, vecs) {
   }
 }
 
-function loadVectors(ids) {
-  if (!ids.length) return new Map();
-  const placeholders = ids.map(() => '?').join(',');
-  const rows = db
-    .prepare(`SELECT transaction_id, doc_hash, vec FROM tx_embed WHERE transaction_id IN (${placeholders}) AND model = ?`)
-    .all(...ids, model());
-  return new Map(rows.map((r) => [r.transaction_id, { hash: r.doc_hash, vec: fromBlob(r.vec) }]));
+// Read in chunks: SQLite limits the number of bound parameters, and a query may now cover a whole account.
+const ID_CHUNK = 500;
+function loadVectors(ids, { hashOnly = false } = {}) {
+  const out = new Map();
+  for (let i = 0; i < ids.length; i += ID_CHUNK) {
+    const chunk = ids.slice(i, i + ID_CHUNK);
+    const rows = db
+      .prepare(`SELECT transaction_id, doc_hash${hashOnly ? '' : ', vec'} FROM tx_embed WHERE transaction_id IN (${chunk.map(() => '?').join(',')}) AND model = ?`)
+      .all(...chunk, model());
+    for (const r of rows) out.set(r.transaction_id, { hash: r.doc_hash, vec: hashOnly ? null : fromBlob(r.vec) });
+  }
+  return out;
 }
 
 /* ---------------- indexing ---------------- */
@@ -119,7 +126,7 @@ function loadVectors(ids) {
 // Embed any of these rows that are missing / stale. Bounded so a query stays fast.
 async function ensureIndexed(rows, cap = 80) {
   if (!enabled() || !rows.length) return { added: 0 };
-  const have = loadVectors(rows.map((r) => r.id));
+  const have = loadVectors(rows.map((r) => r.id), { hashOnly: true });
   const stale = rows.filter((r) => {
     const h = have.get(r.id);
     return !h || h.hash !== docHash(r);
@@ -137,7 +144,7 @@ async function reindexUser(userId, { force = false, batch = 64, max } = {}) {
   const all = db
     .prepare('SELECT id, date, amount, type, category, merchant, note FROM transactions WHERE user_id = ? ORDER BY id')
     .all(userId);
-  const have = force ? new Map() : loadVectors(all.map((r) => r.id));
+  const have = force ? new Map() : loadVectors(all.map((r) => r.id), { hashOnly: true });
   const todo = all.filter((r) => {
     const h = have.get(r.id);
     return !h || h.hash !== docHash(r);
@@ -173,17 +180,43 @@ function status(userId) {
 /* ---------------- ranking hook used by retrieve.js ---------------- */
 
 // Given candidate rows + a query, return a Map(id -> semanticScore in [0,1]) or null.
-async function semanticScores(rows, query) {
-  if (!enabled() || !rows.length) return null;
+//
+// Default behaviour (the app): lazily embeds up to 80 missing rows, and returns null
+// (-> lexical only) if Ollama is unreachable.
+//
+// Eval behaviour: `readOnly` never writes to tx_embed; `strict` never returns null —
+// it throws if embeddings are disabled, Ollama fails, or ANY candidate row lacks a
+// current vector. A strict run therefore cannot silently degrade to keyword-only.
+async function semanticScores(rows, query, { readOnly = false, strict = false } = {}) {
+  if (!rows.length) return null;
+  if (!enabled()) {
+    if (strict) throw new Error('semantic search requested but embeddings are disabled (set EMBED_ENABLED=true)');
+    return null;
+  }
   let qVec;
   try {
-    await api.ensureIndexed(rows);
+    if (!readOnly) await api.ensureIndexed(rows);
     qVec = await api.embedQuery(query);
-  } catch {
+  } catch (e) {
+    if (strict) throw new Error(`semantic search failed: ${e.message}`);
     return null; // Ollama unreachable -> lexical only
   }
-  if (!qVec) return null;
+  if (!qVec) {
+    if (strict) throw new Error('semantic search failed: no query vector');
+    return null;
+  }
   const vecs = loadVectors(rows.map((r) => r.id));
+  if (strict) {
+    const missing = rows.filter((r) => {
+      const h = vecs.get(r.id);
+      return !h || h.hash !== docHash(r);
+    });
+    if (missing.length) {
+      throw new Error(`embedding index incomplete: ${missing.length} of ${rows.length} candidate rows have no current ${model()} vector`);
+    }
+    const bad = rows.find((r) => vecs.get(r.id).vec.length !== qVec.length);
+    if (bad) throw new Error(`embedding dimension mismatch (query ${qVec.length}, row ${bad.id} ${vecs.get(bad.id).vec.length})`);
+  }
   const out = new Map();
   for (const r of rows) {
     const h = vecs.get(r.id);

@@ -4,6 +4,9 @@ node_modules/
 # runtime data — SQLite DB, WAL/SHM, generated session secret
 data/
 
+# eval snapshot copies of the DB (contain users + password hashes)
+eval/snapshots/
+
 # local environment (secrets)
 .env
 

@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "version": 1,
+    "k": 20,
+    "datasets": {
+      "demo": {
+        "userEmail": "demo@example.com",
+        "defaultMonth": null
+      },
+      "real": {
+        "userEmail": "real@example.com",
+        "defaultMonth": null
+      }
+    },
+    "snapshotSha256": null
+  },
+  "questions": [
+    {
+      "id": "A-01",
+      "group": "A",
+      "dataset": "demo",
+      "split": "tune",
+      "question": "list my dining charges in august",
+      "retrieval": {
+        "goldBasis": "sql",
+        "sql": "SELECT id FROM transactions WHERE user_id = :userId AND type = 'expense' AND category = 'Dining' AND substr(date,1,7) = '2026-08'",
+        "goldIds": [
+          2394,
+          2397,
+          2402,
+          2403,
+          2407,
+          2408,
+          2410,
+          2415,
+          2416,
+          2419,
+          2420,
+          2425,
+          2430,
+          2431,
+          2432,
+          2435,
+          2443,
+          2446,
+          2447,
+          2448,
+          2450,
+          2451,
+          2453,
+          2461,
+          2462,
+          2463,
+          2464,
+          2465
+        ],
+        "labelStatus": "confirmed"
+      },
+      "answer": {
+        "type": "number",
+        "source": {
+          "sql": "SELECT ROUND(SUM(amount),2) FROM transactions WHERE user_id = :userId AND type = 'expense' AND category = 'Dining' AND substr(date,1,7) = '2026-08'"
+        },
+        "expected": 560.5,
+        "tolerance": 0.01
+      },
+      "notes": "Total spent on Dining in Aug 2026. Group A asks about the category itself, so the category column is the right ground truth here."
+    },
+    {
+      "id": "B-01",
+      "group": "B",
+      "dataset": "real",
+      "split": "test",
+      "question": "show me every milk 1lit purchase",
+      "retrieval": {
+        "goldBasis": "sql",
+        "sql": "SELECT id FROM transactions WHERE user_id = :userId AND merchant = 'milk 1lit'",
+        "goldIds": [
+          2607,
+          3219,
+          3224,
+          3231,
+          3279,
+          3306,
+          3308,
+          3321,
+          3323,
+          3333,
+          3346,
+          3411,
+          3427,
+          3430,
+          3442,
+          3454,
+          3463,
+          3471,
+          3477,
+          3483,
+          3484,
+          3488,
+          3489,
+          3496,
+          3498,
+          3505,
+          3509,
+          3530,
+          3537,
+          3552,
+          3577,
+          3583,
+          3596,
+          3614,
+          3618,
+          3635,
+          3640,
+          3704,
+          3726,
+          3738,
+          3879,
+          3918,
+          3930,
+          3935,
+          3947,
+          3952,
+          3965,
+          3971,
+          4222,
+          4231,
+          4237,
+          4249,
+          4258,
+          4264,
+          4276,
+          4289,
+          4292,
+          4298,
+          4304,
+          4315,
+          4317,
+          4324,
+          4331,
+          4333,
+          4345,
+          4390,
+          4432
+        ],
+        "labelStatus": "confirmed"
+      },
+      "answer": {
+        "type": "count",
+        "source": {
+          "goldCount": true
+        },
+        "expected": 67
+      },
+      "notes": "More than 20 gold rows: Recall@20 divides by min(|gold|, 20)."
+    },
+    {
+      "id": "C-01",
+      "group": "C",
+      "dataset": "demo",
+      "split": "tune",
+      "question": "what did I spend on takeout?",
+      "retrieval": {
+        "goldBasis": "manual",
+        "goldIds": [],
+        "candidateIds": [
+          2443,
+          2425,
+          2453,
+          2354,
+          2407,
+          2394,
+          2368,
+          2420,
+          2408,
+          2383,
+          2358,
+          2320
+        ],
+        "labelStatus": "draft",
+        "labelNotes": "candidateIds are the current semantic retriever's top 12 - suggestions for a human to accept or reject, never scored."
+      },
+      "answer": {
+        "type": "number",
+        "source": {
+          "goldSum": true
+        }
+      }
+    },
+    {
+      "id": "F-01",
+      "group": "F",
+      "dataset": "demo",
+      "split": "test",
+      "question": "how much have I spent at Amazon in total?",
+      "retrieval": {
+        "goldBasis": "sql",
+        "sql": "SELECT id FROM transactions WHERE user_id = :userId AND type = 'expense' AND merchant = 'Amazon'",
+        "goldIds": [
+          2269,
+          2291,
+          2297,
+          2321,
+          2422,
+          2423,
+          2440
+        ],
+        "labelStatus": "confirmed"
+      },
+      "answer": {
+        "type": "number",
+        "source": {
+          "goldSum": true
+        },
+        "expected": 461.23,
+        "tolerance": 0.01
+      }
+    },
+    {
+      "id": "G-01",
+      "group": "G",
+      "dataset": "demo",
+      "split": "test",
+      "question": "show me my Tesla charges",
+      "retrieval": {
+        "goldBasis": "sql",
+        "sql": "SELECT id FROM transactions WHERE user_id = :userId AND lower(merchant || ' ' || note) LIKE '%tesla%'",
+        "goldIds": [],
+        "labelStatus": "confirmed"
+      },
+      "answer": {
+        "type": "abstain"
+      },
+      "notes": "No such merchant exists; the right behaviour is to say so."
+    }
+  ]
+}

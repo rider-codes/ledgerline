@@ -2,8 +2,8 @@
 
 const { db, CATEGORIES } = require('./db');
 const A = require('./analytics');
-const { CAT_SYNONYMS, MONTH_NAMES } = require('./vocab');
-const { retrieve, formatForPrompt, searchAnswer } = require('./retrieve');
+const { CAT_SYNONYMS, MONTH_NAMES, BRANDS } = require('./vocab');
+const { retrieve, formatForPrompt, searchAnswer, summarizeRetrieval, parseFilters } = require('./retrieve');
 
 const CURRENCY = () => process.env.CURRENCY || '$';
 const fmt = (n) => `${CURRENCY()}${Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -31,26 +31,22 @@ function findCategory(q) {
   }
   for (const [cat, words] of Object.entries(CAT_SYNONYMS)) {
     for (const w of words) {
+      if (BRANDS.has(w)) continue; // a brand ("uber") names a merchant, not its whole category
       if (s.includes(` ${w} `) || s.includes(` ${w}s `) || s.includes(` ${w},`) || s.includes(` ${w}?`)) return cat;
     }
   }
   return null;
 }
 
+// Months the question names, resolved the same way the retriever resolves them (years honoured,
+// and a month with no data kept as itself rather than swapped for another month).
+function namedMonths(userId, q) {
+  return parseFilters(q, A.defaultMonth(userId), userId).months || [];
+}
+
 function findMonth(userId, q) {
-  const months = A.listMonths(userId);
-  const def = A.defaultMonth(userId);
-  if (/last month|previous month|month before/.test(q)) return A.addMonths(def, -1);
-  if (/this month|current month/.test(q)) return def;
-  const iso = q.match(/\b(20\d{2})-(0[1-9]|1[0-2])\b/);
-  if (iso && months.includes(iso[0])) return iso[0];
-  for (let i = 0; i < 12; i++) {
-    if (q.includes(MONTH_NAMES[i])) {
-      const match = months.filter((m) => Number(m.slice(5, 7)) === i + 1).sort().pop();
-      if (match) return match;
-    }
-  }
-  return def;
+  const named = namedMonths(userId, q);
+  return named.length ? named[0] : A.defaultMonth(userId);
 }
 
 // Month names in the order they appear in the question, resolved to YYYY-MM.
@@ -73,15 +69,30 @@ function findMerchant(userId, q) {
   const rows = db
     .prepare(`SELECT merchant, COUNT(*) c FROM transactions WHERE user_id = ? AND merchant <> '' GROUP BY merchant`)
     .all(userId);
+  // a full merchant name beats a match on its first word ("uber" -> "Uber", not "Uber Eats");
+  // ties go to the longer name
+  const hasWord = (w) => new RegExp(`(^|[^a-z0-9])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z0-9])`).test(q);
   let best = null;
+  let bestScore = 0;
   for (const r of rows) {
     const m = r.merchant.toLowerCase();
     const head = m.split(/\s|—|-/)[0];
-    if ((m.length >= 4 && q.includes(m)) || (head.length >= 4 && q.includes(head))) {
-      if (!best || r.merchant.length > best.length) best = r.merchant;
+    const score = m.length >= 4 && hasWord(m) ? 2 : head.length >= 4 && hasWord(head) ? 1 : 0;
+    if (score && (score > bestScore || (score === bestScore && r.merchant.length > best.length))) {
+      best = r.merchant;
+      bestScore = score;
     }
   }
   return best;
+}
+
+// "at Tesla" / "from Tesla" naming a place that is not one of the user's merchants -> "Tesla"
+const NOT_A_PLACE = new Set(['least', 'most', 'all', 'once', 'home', 'work', 'the moment', 'this point', 'this rate']);
+function unknownPlace(q, merchant) {
+  if (merchant) return null;
+  const m = q.match(/\b(?:at|from)\s+(?:the\s+)?([a-z0-9][a-z0-9'&.\- ]{1,40}?)(?=\s+(?:in|on|during|for|this|last|since|over|under|between|and)\b|[?.,!]|\s*$)/);
+  if (!m || NOT_A_PLACE.has(m[1].trim())) return null;
+  return m[1].trim().replace(/\b[a-z]/g, (c) => c.toUpperCase());
 }
 
 function trendLine(userId, category, endMonth) {
@@ -138,16 +149,18 @@ function answerMerchant(userId, merchant, month) {
   return parts.join('\n');
 }
 
-function answerBiggest(userId, month) {
+// Largest expenses in a month, narrowed to the category or merchant the question names.
+function answerBiggest(userId, month, { category, merchant } = {}) {
+  const where = ["user_id=?", "type='expense'", 'substr(date,1,7)=?'];
+  const args = [userId, month];
+  if (merchant) { where.push('merchant=?'); args.push(merchant); }
+  else if (category) { where.push('category=?'); args.push(category); }
   const rows = db
-    .prepare(
-      `SELECT date, merchant, category, amount FROM transactions
-       WHERE user_id=? AND type='expense' AND substr(date,1,7)=?
-       ORDER BY amount DESC LIMIT 5`
-    )
-    .all(userId, month);
-  if (!rows.length) return `No expenses recorded in ${A.monthLabel(month)}.`;
-  const parts = [`Biggest expenses in ${A.monthLabel(month)}:`];
+    .prepare(`SELECT date, merchant, category, amount FROM transactions WHERE ${where.join(' AND ')} ORDER BY amount DESC LIMIT 5`)
+    .all(...args);
+  const scope = merchant ? `${merchant} ` : category ? `${category} ` : '';
+  if (!rows.length) return `No ${scope}expenses recorded in ${A.monthLabel(month)}.`;
+  const parts = [`Biggest ${scope}expenses in ${A.monthLabel(month)}:`];
   rows.forEach((r, i) => parts.push(`${i + 1}. ${fmt2(r.amount)} — ${r.merchant || r.category} (${r.category}, ${r.date})`));
   return parts.join('\n');
 }
@@ -294,23 +307,39 @@ function answerOverview(userId, month) {
   return parts.join('\n');
 }
 
-async function viaRules(userId, summary, message) {
+// ctx (all optional): { trace, retrieval, evalMode } — see askStream.
+async function viaRules(userId, summary, message, ctx = {}) {
   const q = ` ${String(message || '').toLowerCase().replace(/[^\w\s%$?,.-]/g, ' ').replace(/\s+/g, ' ').trim()} `;
   const month = findMonth(userId, q);
   const category = findCategory(q);
   const merchant = findMerchant(userId, q);
+  const place = category ? null : unknownPlace(q, merchant);
+  // record which handler answered, so an eval can tell "retrieval question" from "analytics question"
+  const done = (route, text) => {
+    if (ctx.trace) Object.assign(ctx.trace, { route, month, category, merchant });
+    return text;
+  };
+
+  // the question names one month and nothing is recorded for it: say so instead of answering for another month
+  const named = namedMonths(userId, q);
+  if (named.length === 1 && !A.listMonths(userId).includes(named[0])) {
+    return done('no-data', `I don't see any transactions in ${A.monthLabel(named[0])}.`);
+  }
 
   // explicit intents first
-  if (/(savings? rate|saving enough|am i saving|how.?s my saving|left ?over|surplus|net income|how much (do|did|am) i (save|saving|keep))/.test(q)) return answerSavings(userId, month);
-  if (/(where can i save|save money|cut back|cut down|reduce (my )?spend|trim|spend less|help me save|save on|tighten)/.test(q)) return answerSave(userId, month);
-  if (/(overspend|over-?spent|over spend|too much|spik|blew|splurg|worst|ran hot|went over)/.test(q)) return answerOverspend(userId, month);
-  if (/(subscription|recurring charge|unused|streaming service|memberships?)/.test(q)) return answerSubscriptions(userId);
-  if (/(biggest|largest|most expensive|priciest|top (purchase|expense|transaction)|single (biggest|largest))/.test(q)) return answerBiggest(userId, month);
-  if (/(income|salary|paycheck|paychecks|get paid|\bearn|made this|how much.*made|deposits?)/.test(q)) return answerIncome(userId, month);
+  if (/(savings? rate|saving enough|am i saving|how.?s my saving|left ?over|surplus|net income|how much (do|did|am) i (save|saving|keep))/.test(q)) return done('savings', answerSavings(userId, month));
+  if (/(where can i save|save money|cut back|cut down|reduce (my )?spend|trim|spend less|help me save|save on|tighten)/.test(q)) return done('save', answerSave(userId, month));
+  if (/(overspend|over-?spent|over spend|too much|spik|blew|splurg|worst|ran hot|went over)/.test(q)) return done('overspend', answerOverspend(userId, month));
+  if (/(subscription|recurring charge|unused|streaming service|memberships?)/.test(q)) return done('subscriptions', answerSubscriptions(userId));
+  if (/(biggest|largest|most expensive|priciest|top (purchase|expense|transaction)|single (biggest|largest))/.test(q)) {
+    if (place) return done('no-merchant', `I don't see any transactions at ${place}.`);
+    return done('biggest', answerBiggest(userId, month, { category, merchant }));
+  }
+  if (/(income|salary|paycheck|paychecks|get paid|\bearn|made this|how much.*made|deposits?)/.test(q)) return done('income', answerIncome(userId, month));
   if (/(compare|\bvs\b|versus|month.*to.*month|to last month|against last)/.test(q)) {
     const mm = monthsInQuery(userId, q);
-    if (mm.length >= 2) return answerCompare(userId, mm[0], mm[1]);
-    return answerCompare(userId, month);
+    if (mm.length >= 2) return done('compare', answerCompare(userId, mm[0], mm[1]));
+    return done('compare', answerCompare(userId, month));
   }
 
   // transaction search (retrieval): "show me / list / find ...", explicit amount windows,
@@ -320,16 +349,69 @@ async function viaRules(userId, summary, message) {
     (/(over|under|above|below|between|more than|less than)\s+\$?\d/.test(q) && /(transaction|charge|purchase|spent|bought|paid)/.test(q)) ||
     /\b(purchases|charges|orders|runs|trips|visits)\b/.test(q)
   ) {
-    return await searchAnswer(userId, message, { defaultMonth: A.defaultMonth(userId) });
+    const text = await searchAnswer(userId, message, {
+      defaultMonth: A.defaultMonth(userId), ...ctx.retrieval, evalMode: !!ctx.evalMode, trace: ctx.trace,
+    });
+    return done('search', text);
+  }
+
+  // "spend on <topic>" where the topic is not one category or merchant ("street food and sweets",
+  // "chai and snacks"): search for matching rows instead of answering with the month's overall total
+  // or with one merchant that covers only part of the topic
+  const topic = spendTopic(q);
+  if (topic && !place) {
+    const cats = new Set(topic.map((t) => findCategory(t)));
+    const oneCategory = cats.size === 1 && !cats.has(null) && !merchant;
+    const covered = topic.length === 1 ? Boolean(category || merchant) : oneCategory;
+    if (!covered) return done('topic', await topicAnswer(userId, message, topic, ctx));
   }
 
   // entity-driven
-  if (merchant && /(spend|spent|cost|how much|paid|charge|at |on )/.test(q)) return answerMerchant(userId, merchant, month);
-  if (category) return answerCategory(userId, category, month);
-  if (merchant) return answerMerchant(userId, merchant, month);
-  if (/(total|how much did i spend|how much have i spent|spending this|spend this|spent in|what did i spend)/.test(q)) return answerTotal(userId, month);
+  if (merchant && /(spend|spent|cost|how much|paid|charge|at |on )/.test(q)) return done('merchant', answerMerchant(userId, merchant, month));
+  if (category) return done('category', answerCategory(userId, category, month));
+  if (merchant) return done('merchant', answerMerchant(userId, merchant, month));
+  if (place) return done('no-merchant', `I don't see any transactions at ${place}.`);
+  if (/(total|how much did i spend|how much have i spent|spending this|spend this|spent in|what did i spend)/.test(q)) return done('total', answerTotal(userId, month));
 
-  return fallback(userId, month);
+  return done('fallback', fallback(userId, month));
+}
+
+// The thing after "spend/spent/spending/paid on|for", split on "and" / "," / "&" / "+".
+// Returns null when there is none or it only names everything ("on everything", "on stuff").
+const TOPIC_STOP = /\s+(?:in|during|this|last|since|over|under|between|from|so|per|each|every)\b|[?.!]|\s*$/;
+const NOT_A_TOPIC = new Set(['everything', 'anything', 'stuff', 'things', 'all', 'average', 'total', 'it', 'that', 'this']);
+function spendTopic(q) {
+  const m = q.match(/\b(?:spen[dt]|spending|paid|pay)\s+(?:on|for)\s+(.*)$/);
+  if (!m) return null;
+  const raw = m[1].split(TOPIC_STOP)[0].replace(/^(?:my|the|our)\s+/, '').trim();
+  if (!raw || NOT_A_TOPIC.has(raw)) return null;
+  const parts = raw.split(/\s*(?:,|&|\+|\band\b)\s*/).map((s) => s.trim()).filter(Boolean);
+  return parts.length ? parts : null;
+}
+
+// Spending on a free-text topic. A total is stated only when every matching row fits in the
+// result; when retrieval matches more than that, the match set is too loose to sum honestly,
+// so list the closest rows and say why there is no total.
+const TOPIC_K = 20;
+async function topicAnswer(userId, message, topic, ctx) {
+  const res = await retrieve(userId, message, {
+    defaultMonth: A.defaultMonth(userId), ...ctx.retrieval, k: TOPIC_K, evalMode: !!ctx.evalMode,
+  });
+  if (ctx.trace) ctx.trace.retrieval = summarizeRetrieval(res);
+  const label = topic.join(' and ');
+  const rows = res.rows.filter((r) => r.type === 'expense');
+  if (!rows.length) return `I couldn't find any spending on ${label}.`;
+  const line = (r) => `• ${r.date} — ${r.merchant || r.note || '—'} (${r.category}) ${fmt2(r.amount)}`;
+  const m = res.matched;
+  if (m.count <= TOPIC_K) {
+    return [`Spending on ${label}: ${fmt2(m.spend)} across ${rows.length} transaction(s):`, ...rows.slice(0, 12).map(line),
+      ...(rows.length > 12 ? [`…and ${rows.length - 12} more.`] : [])].join('\n');
+  }
+  return [
+    `I can't give a reliable total for ${label}: ${m.count} transactions loosely match, too many to sum with confidence. Closest matches:`,
+    ...rows.slice(0, 12).map(line),
+    'Try naming a category or merchant (e.g. "how much did I spend on dining") for an exact total.',
+  ].join('\n');
 }
 
 function fallback(userId, month) {
@@ -339,12 +421,17 @@ function fallback(userId, month) {
 
 // Retrieval block shared by the LLM backends. Capped tighter than a raw search so
 // the prompt stays small (local models slow down fast with context length).
-async function ragBlock(userId, message) {
+async function ragBlock(userId, message, ctx = {}) {
   try {
     const k = Math.max(5, Math.min(25, parseInt(process.env.RAG_LLM_ROWS || '20', 10)));
-    const res = await retrieve(userId, message, { defaultMonth: A.defaultMonth(userId), k });
-    return `\n\n--- ${formatForPrompt(res)}`;
-  } catch {
+    const res = await retrieve(userId, message, {
+      defaultMonth: A.defaultMonth(userId), k, ...ctx.retrieval, evalMode: !!ctx.evalMode,
+    });
+    const text = formatForPrompt(res);
+    if (ctx.trace) { ctx.trace.retrieval = summarizeRetrieval(res); ctx.trace.ragBlock = text; }
+    return `\n\n--- ${text}`;
+  } catch (e) {
+    if (ctx.evalMode) throw e; // an eval must not silently run without retrieval
     return '';
   }
 }
@@ -353,10 +440,10 @@ async function ragBlock(userId, message) {
  * Backend 2: local model via Ollama (streaming)
  * ------------------------------------------------------------------ */
 
-async function streamOllama(userId, systemBase, message, history, emit, abort) {
+async function streamOllama(userId, systemBase, message, history, emit, abort, ctx) {
   const url = (process.env.OLLAMA_URL || 'http://localhost:11434').replace(/\/$/, '');
   const model = process.env.OLLAMA_MODEL || 'llama3.1:8b';
-  const rag = await ragBlock(userId, message);
+  const rag = await ragBlock(userId, message, ctx);
   const timer = setTimeout(() => abort.abort(), 150_000);
   try {
     const res = await fetch(`${url}/api/chat`, {
@@ -407,11 +494,11 @@ async function streamOllama(userId, systemBase, message, history, emit, abort) {
  * Backend 3: Claude via the official SDK (streaming)
  * ------------------------------------------------------------------ */
 
-async function streamAnthropic(userId, systemBase, message, history, emit, abort) {
+async function streamAnthropic(userId, systemBase, message, history, emit, abort, ctx) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
-  const rag = await ragBlock(userId, message);
+  const rag = await ragBlock(userId, message, ctx);
   let any = false;
   const stream = client.messages.stream(
     {
@@ -447,12 +534,21 @@ function normalizeHistory(history) {
  *   {type:'delta', text}          repeatedly, incremental content
  *   {type:'note', text}           optional, e.g. a fallback notice
  * `opts.abortSignal` (AbortSignal) stops an in-flight LLM call early.
+ *
+ * Eval hooks (all optional, none change the SSE events):
+ *   opts.trace      object filled in as the question is answered: backend, route, retrieval, ragBlock…
+ *   opts.retrieval  { mode, weight, semMin, k } forwarded to retrieve()
+ *   opts.evalMode   no embedding writes; semantic failures, retrieval failures and LLM failures
+ *                   throw instead of silently falling back to a weaker path
  */
 async function askStream(userId, message, history, emit, opts = {}) {
   const backend = (process.env.AI_BACKEND || 'rules').toLowerCase();
   const summary = A.buildSummary(userId);
   const systemBase = `${SYSTEM_PROMPT}\n\n--- USER DATA SUMMARY ---\n${summary.text}`;
   const hist = normalizeHistory(history);
+  const ctx = { trace: opts.trace || null, retrieval: opts.retrieval || {}, evalMode: !!opts.evalMode };
+  if (ctx.trace) Object.assign(ctx.trace, { configuredBackend: backend, defaultMonth: A.defaultMonth(userId), retrievalOpts: ctx.retrieval });
+  const failEval = (why) => { if (ctx.evalMode) throw new Error(`evalMode: ${why}`); };
 
   let produced = false;
   const track = (ev) => { if (ev.type === 'delta') produced = true; emit(ev); };
@@ -463,7 +559,7 @@ async function askStream(userId, message, history, emit, opts = {}) {
     const onAbort = () => ctl.abort();
     if (opts.abortSignal) opts.abortSignal.addEventListener('abort', onAbort);
     try {
-      await fn(userId, systemBase, message, hist, track, ctl);
+      await fn(userId, systemBase, message, hist, track, ctl, ctx);
       return 'ok';
     } catch (e) {
       if (opts.abortSignal && opts.abortSignal.aborted) return 'aborted';
@@ -477,15 +573,21 @@ async function askStream(userId, message, history, emit, opts = {}) {
   if (backend === 'ollama') {
     const r = await runLLM(streamOllama, 'ollama', process.env.OLLAMA_MODEL || 'llama3.1:8b');
     if (r === 'ok' || r === 'partial' || r === 'aborted') return;
+    failEval(`ollama backend failed (${r})`);
+    if (ctx.trace) Object.assign(ctx.trace, { fallbackFrom: 'ollama', fallbackReason: r });
     emit({ type: 'meta', mode: 'rules' });
     emit({ type: 'note', text: `Local model unreachable (${r}). Showing built-in analysis.` });
   } else if (backend === 'anthropic') {
     if (!process.env.ANTHROPIC_API_KEY) {
+      failEval('AI_BACKEND=anthropic but ANTHROPIC_API_KEY is not set');
+      if (ctx.trace) Object.assign(ctx.trace, { fallbackFrom: 'anthropic', fallbackReason: 'no API key' });
       emit({ type: 'meta', mode: 'rules' });
       emit({ type: 'note', text: 'No ANTHROPIC_API_KEY set. Showing built-in analysis.' });
     } else {
       const r = await runLLM(streamAnthropic, 'anthropic', process.env.ANTHROPIC_MODEL || 'claude-sonnet-5');
       if (r === 'ok' || r === 'partial' || r === 'aborted') return;
+      failEval(`anthropic backend failed (${r})`);
+      if (ctx.trace) Object.assign(ctx.trace, { fallbackFrom: 'anthropic', fallbackReason: r });
       emit({ type: 'meta', mode: 'rules' });
       emit({ type: 'note', text: `Claude API error (${r}). Showing built-in analysis.` });
     }
@@ -494,21 +596,29 @@ async function askStream(userId, message, history, emit, opts = {}) {
   }
 
   // rules backend (default or fallback) — deterministic, sent whole
-  emit({ type: 'delta', text: await viaRules(userId, summary, message) });
+  emit({ type: 'delta', text: await viaRules(userId, summary, message, ctx) });
 }
 
 // Non-streaming convenience wrapper (kept for tests and any internal caller).
-async function ask(userId, message, history = []) {
+// Always returns `trace`: what was configured, which handler answered, and (when the
+// question went through retrieval) the retrieved ids, per-row scores, filters and counts.
+// `opts` takes the same eval hooks as askStream (retrieval, evalMode); trace is created here.
+async function ask(userId, message, history = [], opts = {}) {
   let reply = '';
   let mode = 'rules';
   let model;
   let note;
+  const trace = { question: message };
+  const t0 = Date.now();
   await askStream(userId, message, history, (ev) => {
     if (ev.type === 'meta') { mode = ev.mode; model = ev.model; }
     else if (ev.type === 'delta') reply += ev.text;
     else if (ev.type === 'note') note = ev.text;
-  });
-  return { reply, mode, model, note };
+  }, { ...opts, trace });
+  trace.backend = mode;
+  trace.model = model ?? null;
+  trace.elapsedMs = Date.now() - t0;
+  return { reply, mode, model, note, trace };
 }
 
 module.exports = { ask, askStream, SYSTEM_PROMPT, buildSummary: A.buildSummary };

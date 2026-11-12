@@ -24,7 +24,7 @@ const BRANDS = new Set(['doordash', 'uber eats', 'ubereats', 'uber', 'lyft', 'ba
 
 // English stopwords that carry no signal for transaction retrieval.
 const STOPWORDS = new Set(
-  ('a an and the of to in on at for is are was were be been do did does done how much many i my me we us our you your what which who when where why whom show tell give list find search see look lookup want need please can could would should every each all any some both few more most than less over under above below about into with from between range around exactly least most as it its them their this that these those here there then than now last previous next current recent spend spent spending cost costs paid pay pays paying charge charges charged buy buys buying bought get gets got purchase purchases purchased transaction transactions txn amount amounts total totals month months year years day days week weeks dollar dollars buck bucks usd cash money'
+  ('a an and the of to in on at for is are was were be been do did does done how much many i my me we us our you your what which who when where why whom show tell give list find search see look lookup want need please can could would should every each all any some both few more most than less over under above below about into with from between range around exactly least most as it its them their this that these those here there then than now last previous next current recent spend spent spending cost costs paid pay pays paying charge charges charged buy buys buying bought get gets got purchase purchases purchased transaction transactions txn amount amounts total totals month months year years day days week weeks dollar dollars buck bucks usd rupee rupees inr rs cash money'
   ).split(/\s+/)
 );
 

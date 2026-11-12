@@ -107,19 +107,26 @@ Chipotle, `AMZN` → Amazon):
    re-embedded automatically when they turn up in a search.
 
 Ranking then blends the lexical BM25 score with embedding cosine similarity
-(`RAG_SEMANTIC_WEIGHT`, default 0.5; `RAG_SEMANTIC_MIN` gates weak semantic-only matches).
+(`RAG_SEMANTIC_WEIGHT`, default 1; `RAG_SEMANTIC_MIN`, default 0.6, gates weak semantic-only matches; both tuned with `eval/tune.js`).
 If Ollama or the embed model isn't reachable, search silently falls back to lexical-only.
 `src/embed.js` holds the whole thing; `src/retrieve.js` calls into it.
 
 ## Data & privacy
 
-- Everything is stored in `data/finance.db` (SQLite, git-ignored).
+- Everything is stored in `data/finance.db` (SQLite, git-ignored); set `DATA_DIR`
+  to keep it elsewhere.
 - Passwords are hashed with bcrypt. The session is a signed cookie; if
   `SESSION_SECRET` is unset the app generates and persists a strong one at
   `data/.session-secret` on first run (set your own in `.env` to override).
 - With `AI_BACKEND=rules` or `ollama`, no transaction data leaves your machine.
   With `anthropic`, a summary of your monthly totals and category breakdown is sent
   to the Claude API to answer each question.
+
+## Deploying
+
+See [DEPLOY.md](DEPLOY.md). Short version: a host with a persistent disk (Render
+Blueprint in `render.yaml`), `NODE_ENV=production`, `DATA_DIR` on the disk, and
+`AI_BACKEND=rules`. Serverless hosts such as Vercel don't fit (temporary filesystem).
 
 ## Notes / limitations
 

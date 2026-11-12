@@ -28,7 +28,15 @@ function listMonths(userId) {
     .map((r) => r.ym);
 }
 
+// Eval/test hook: pin a user's "current" month so results don't drift with the clock.
+const pinnedMonth = new Map();
+function pinDefaultMonth(userId, ym) {
+  if (ym == null) pinnedMonth.delete(userId);
+  else pinnedMonth.set(userId, ym);
+}
+
 function defaultMonth(userId) {
+  if (pinnedMonth.has(userId)) return pinnedMonth.get(userId);
   const months = listMonths(userId);
   if (!months.length) return new Date().toISOString().slice(0, 7);
   const currentCal = new Date().toISOString().slice(0, 7);
@@ -237,6 +245,7 @@ module.exports = {
   monthLabel,
   listMonths,
   defaultMonth,
+  pinDefaultMonth,
   monthlyTotals,
   monthTotals,
   categoryBreakdown,
