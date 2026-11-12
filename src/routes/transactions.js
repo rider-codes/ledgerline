@@ -30,7 +30,7 @@ router.get('/transactions', (req, res) => {
   const rows = A.recentTransactions(req.user.id, { month, category, type, limit, offset });
   const where = ['user_id = ?'];
   const args = [req.user.id];
-  if (month) { where.push('substr(date,1,7) = ?'); args.push(month); }
+  if (month && A.isPeriod(month)) { where.push(`${A.periodExpr(month)} = ?`); args.push(month); } // YYYY-MM or YYYY
   if (category) { where.push('category = ?'); args.push(category); }
   if (type) { where.push('type = ?'); args.push(type); }
   const total = db.prepare(`SELECT COUNT(*) AS c FROM transactions WHERE ${where.join(' AND ')}`).get(...args).c;

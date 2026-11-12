@@ -19,16 +19,36 @@ router.get('/months', (req, res) => {
   res.json({ months: A.listMonths(req.user.id), default: A.defaultMonth(req.user.id) });
 });
 
+// ?month= takes a month (YYYY-MM) or a whole year (YYYY). A year's response has the same
+// shape: `monthly` is Jan..Dec of that year and `daily` is replaced by `yearly` (one bar per year).
 router.get('/dashboard', (req, res) => {
+  const uid = req.user.id;
+  const years = A.listYears(uid);
+  const q = String(req.query.month || '');
+  if (A.isYear(q) && years.includes(q)) {
+    return res.json({
+      month: q,
+      period: 'year',
+      months: A.listMonths(uid),
+      years,
+      kpis: A.kpis(uid, q),
+      monthly: A.yearMonths(uid, q),
+      yearly: A.yearlyTotals(uid, 6),
+      categories: A.categoryBreakdown(uid, q),
+      merchants: A.topMerchants(uid, q, 6),
+    });
+  }
   const { month, months } = resolveMonth(req);
   res.json({
     month,
+    period: 'month',
     months,
-    kpis: A.kpis(req.user.id, month),
-    monthly: A.monthlyTotals(req.user.id, 6, month),
-    daily: A.dailySeries(req.user.id, month),
-    categories: A.categoryBreakdown(req.user.id, month),
-    merchants: A.topMerchants(req.user.id, month, 6),
+    years,
+    kpis: A.kpis(uid, month),
+    monthly: A.monthlyTotals(uid, 6, month),
+    daily: A.dailySeries(uid, month),
+    categories: A.categoryBreakdown(uid, month),
+    merchants: A.topMerchants(uid, month, 6),
   });
 });
 

@@ -20,12 +20,24 @@ function daysInMonth(ym) {
 }
 const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
-/* ---- month discovery ---- */
+/* ---- periods: a month (YYYY-MM) or a whole year (YYYY) ----
+   The aggregation functions below take either. Callers validate the string first
+   (isPeriod); periodExpr only ever emits substr(date,1,4) or substr(date,1,7). */
+const isYear = (p) => /^\d{4}$/.test(String(p));
+const isPeriod = (p) => /^\d{4}(-\d{2})?$/.test(String(p));
+const periodExpr = (p) => `substr(date,1,${isYear(p) ? 4 : 7})`;
+function prevPeriod(p) { return isYear(p) ? String(Number(p) - 1) : addMonths(p, -1); }
+function periodLabel(p) { return isYear(p) ? String(p) : monthLabel(p); }
+
+/* ---- month / year discovery ---- */
 function listMonths(userId) {
   return db
     .prepare(`SELECT DISTINCT substr(date,1,7) AS ym FROM transactions WHERE user_id = ? ORDER BY ym`)
     .all(userId)
     .map((r) => r.ym);
+}
+function listYears(userId) {
+  return [...new Set(listMonths(userId).map((m) => m.slice(0, 4)))];
 }
 
 // Eval/test hook: pin a user's "current" month so results don't drift with the clock.
@@ -58,12 +70,22 @@ function monthTotals(userId, ym) {
       `SELECT
          COALESCE(SUM(CASE WHEN type='expense' THEN amount END),0) AS spend,
          COALESCE(SUM(CASE WHEN type='income'  THEN amount END),0) AS income
-       FROM transactions WHERE user_id = ? AND substr(date,1,7) = ?`
+       FROM transactions WHERE user_id = ? AND ${periodExpr(ym)} = ?`
     )
     .get(userId, ym);
   const spend = round2(row.spend);
   const income = round2(row.income);
-  return { month: ym, label: monthLabel(ym), spend, income, net: round2(income - spend) };
+  return { month: ym, label: periodLabel(ym), spend, income, net: round2(income - spend) };
+}
+
+// Jan..Dec totals for one year (months without data are zeros).
+function yearMonths(userId, year) {
+  return Array.from({ length: 12 }, (_, i) => monthTotals(userId, `${year}-${String(i + 1).padStart(2, '0')}`));
+}
+
+// Totals for each year with data, oldest first (at most the last n).
+function yearlyTotals(userId, n = 6) {
+  return listYears(userId).slice(-n).map((y) => monthTotals(userId, y));
 }
 
 function monthlyTotals(userId, n = 6, endMonth) {
@@ -78,7 +100,7 @@ function categorySpend(userId, ym) {
     .prepare(
       `SELECT category, SUM(amount) AS amount, COUNT(*) AS count
        FROM transactions
-       WHERE user_id = ? AND type='expense' AND substr(date,1,7) = ?
+       WHERE user_id = ? AND type='expense' AND ${periodExpr(ym)} = ?
        GROUP BY category`
     )
     .all(userId, ym);
@@ -88,11 +110,13 @@ function categorySpend(userId, ym) {
 }
 
 function categoryBreakdown(userId, ym) {
+  // compared with the previous period and the average of the 3 before it (months or years)
   const cur = categorySpend(userId, ym);
-  const prev = categorySpend(userId, addMonths(ym, -1));
+  const prev = categorySpend(userId, prevPeriod(ym));
   const avg3 = {};
-  for (let i = 1; i <= 3; i++) {
-    const m = categorySpend(userId, addMonths(ym, -i));
+  for (let i = 1, p = ym; i <= 3; i++) {
+    p = prevPeriod(p);
+    const m = categorySpend(userId, p);
     for (const [cat, v] of Object.entries(m)) avg3[cat] = (avg3[cat] || 0) + v.amount / 3;
   }
   const total = Object.values(cur).reduce((s, v) => s + v.amount, 0) || 1;
@@ -142,7 +166,7 @@ function topMerchants(userId, ym, limit = 6) {
               COUNT(*)    AS count,
               MAX(category) AS category
        FROM transactions
-       WHERE user_id = ? AND type='expense' AND substr(date,1,7) = ? AND merchant <> ''
+       WHERE user_id = ? AND type='expense' AND ${periodExpr(ym)} = ? AND merchant <> ''
        GROUP BY merchant
        ORDER BY amount DESC
        LIMIT ?`
@@ -152,8 +176,9 @@ function topMerchants(userId, ym, limit = 6) {
 }
 
 function kpis(userId, ym) {
+  const year = isYear(ym);
   const cur = monthTotals(userId, ym);
-  const prev = monthTotals(userId, addMonths(ym, -1));
+  const prev = monthTotals(userId, prevPeriod(ym));
   const cats = categoryBreakdown(userId, ym);
   const topCategory = cats[0]?.category || '—';
   const uncategorized = db
@@ -163,13 +188,25 @@ function kpis(userId, ym) {
     )
     .get(userId).c;
   const txnCount = db
-    .prepare(`SELECT COUNT(*) AS c FROM transactions WHERE user_id = ? AND substr(date,1,7) = ?`)
+    .prepare(`SELECT COUNT(*) AS c FROM transactions WHERE user_id = ? AND ${periodExpr(ym)} = ?`)
     .get(userId, ym).c;
-  const dim = daysInMonth(ym);
-  const now = new Date().toISOString().slice(0, 10);
-  const elapsed = now.slice(0, 7) === ym ? Number(now.slice(8, 10)) : dim;
+  // a month averages per day; a year averages per month over the months that have data
+  // (a year that starts in May shouldn't be divided by 12)
+  let avgPerDay = null;
+  let avgPerMonth = null;
+  let monthsWithData = null;
+  if (year) {
+    monthsWithData = listMonths(userId).filter((m) => m.startsWith(`${ym}-`)).length;
+    avgPerMonth = round2(cur.spend / Math.max(1, monthsWithData));
+  } else {
+    const dim = daysInMonth(ym);
+    const now = new Date().toISOString().slice(0, 10);
+    const elapsed = now.slice(0, 7) === ym ? Number(now.slice(8, 10)) : dim;
+    avgPerDay = round2(cur.spend / Math.max(1, elapsed));
+  }
   return {
     month: ym,
+    period: year ? 'year' : 'month',
     label: cur.label,
     spend: cur.spend,
     income: cur.income,
@@ -177,7 +214,9 @@ function kpis(userId, ym) {
     savingsRate: cur.income ? Math.round((cur.net / cur.income) * 100) : null,
     prevSpend: prev.spend,
     spendDeltaPct: prev.spend ? Math.round(((cur.spend - prev.spend) / prev.spend) * 100) : null,
-    avgPerDay: round2(cur.spend / Math.max(1, elapsed)),
+    avgPerDay,
+    avgPerMonth,
+    monthsWithData,
     txnCount,
     topCategory,
     uncategorized,
@@ -187,7 +226,7 @@ function kpis(userId, ym) {
 function recentTransactions(userId, { month, category, type, limit = 50, offset = 0 } = {}) {
   const where = ['user_id = ?'];
   const args = [userId];
-  if (month) { where.push('substr(date,1,7) = ?'); args.push(month); }
+  if (month && isPeriod(month)) { where.push(`${periodExpr(month)} = ?`); args.push(month); }
   if (category) { where.push('category = ?'); args.push(category); }
   if (type) { where.push('type = ?'); args.push(type); }
   args.push(limit, offset);
@@ -243,7 +282,14 @@ function buildSummary(userId, months = 6) {
 module.exports = {
   addMonths,
   monthLabel,
+  isYear,
+  isPeriod,
+  periodExpr,
+  periodLabel,
   listMonths,
+  listYears,
+  yearMonths,
+  yearlyTotals,
   defaultMonth,
   pinDefaultMonth,
   monthlyTotals,

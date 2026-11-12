@@ -2,6 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
+  color-scheme: dark; /* native controls (select popups, scrollbars, date pickers) render dark */
   --bg:#0c0e12; --panel:#14181f; --panel-2:#12161d; --elev:#1c222c;
   --line:#1e242f; --line-2:#2b3444; --hair:#1a1f29;
   --text:#eef1f6; --text-2:#9aa5b6; --text-3:#616c7e; --text-4:#4c5666;
@@ -92,6 +93,36 @@ input:focus, select:focus, textarea:focus { border-color:var(--mint); }
 label.field { display:flex; flex-direction:column; gap:7px; }
 select option { background:var(--panel); }
 
+/* Fully styled dropdowns where the browser supports customizable <select> (Chromium 135+);
+   elsewhere the native popup stays, darkened by color-scheme above. */
+@supports (appearance: base-select) {
+  select, ::picker(select) { appearance:base-select; }
+  select { display:inline-flex; align-items:center; gap:10px; cursor:pointer; }
+  select:hover { border-color:var(--text-4); }
+  select:open { border-color:var(--mint); }
+  select::picker-icon { color:var(--text-3); transition:rotate .15s ease; }
+  select:open::picker-icon { rotate:180deg; color:var(--mint); }
+  ::picker(select) {
+    background:var(--panel); border:1px solid var(--line-2); border-radius:10px;
+    padding:4px; margin-block:6px; box-shadow:0 14px 36px rgba(0,0,0,0.5);
+  }
+  select option {
+    background:none; color:var(--text-2); padding:7px 10px; border-radius:6px; gap:8px; cursor:pointer;
+  }
+  select option:hover, select option:focus-visible { background:var(--elev); color:var(--text); outline:none; }
+  select option:checked { background:var(--mint-dim); color:var(--mint); }
+  select option::checkmark { color:var(--mint); }
+  /* group headings ("Full year", "Month") styled like the site's eyebrow labels */
+  select optgroup {
+    font-family:"JetBrains Mono", ui-monospace, monospace; font-size:10.5px; font-weight:400;
+    letter-spacing:0.14em; text-transform:uppercase; color:var(--text-3); padding:6px 10px 2px;
+  }
+  select optgroup + optgroup { border-top:1px solid var(--line); margin-top:4px; padding-top:8px; }
+  select optgroup option {
+    font-family:"Space Grotesk", system-ui, sans-serif; font-size:14px; letter-spacing:normal; text-transform:none;
+  }
+}
+
 /* ---------- chips / pills ---------- */
 .chip { font-size:12px; color:var(--text-2); border:1px solid var(--line-2); border-radius:14px; padding:5px 11px; background:none; cursor:pointer; }
 .chip:hover { border-color:#3a4658; color:var(--text); }
@@ -107,8 +138,8 @@ select option { background:var(--panel); }
 .muted { color:var(--text-3); }
 
 /* ---------- charts (CSS/SVG) ---------- */
-.bars { display:flex; align-items:flex-end; gap:14px; height:220px; padding-top:14px; }
-.bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.bars { display:flex; align-items:flex-end; gap:clamp(3px, 1.4vw, 14px); height:220px; padding-top:14px; }
+.bar-col { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:8px; }
 .bar-track { width:100%; max-width:46px; height:186px; display:flex; align-items:flex-end; }
 .bar { width:100%; background:var(--elev); border-radius:4px 4px 0 0; position:relative; }
 .bar.on { background:var(--mint); box-shadow:0 0 20px rgba(61,220,151,0.22); }

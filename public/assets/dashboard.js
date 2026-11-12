@@ -7,26 +7,45 @@
     return new Date(Date.UTC(y, m - 1, 1)).toLocaleString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
   };
   const fmtDay = (iso) => Number(iso.slice(8, 10));
+  const isYear = (p) => /^\d{4}$/.test(p);
+  const fmtPeriod = (p) => (isYear(p) ? p : fmtMonth(p));
+  const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  let state = { month: null, mode: 'monthly', data: null };
+  // period is a month (YYYY-MM) or a whole year (YYYY); mode picks the time chart
+  let state = { month: null, year: false, mode: 'monthly', data: null };
 
-  async function load(month) {
-    const data = await api('/api/dashboard' + (month ? `?month=${month}` : ''));
+  async function load(period) {
+    const data = await api('/api/dashboard' + (period ? `?month=${encodeURIComponent(period)}` : ''));
+    const year = data.period === 'year';
+    if (year !== state.year) state.mode = 'monthly'; // the second toggle means Daily for a month, Yearly for a year
     state.data = data;
     state.month = data.month;
-    renderMonthSelect(data.months, data.month);
+    state.year = year;
+    renderPeriodSelect(data.years || [], data.months, data.month);
+    renderTimeToggle();
     renderKpis(data.kpis);
     renderTime();
     renderCat(data.categories);
     renderMerchants(data.merchants);
     renderRecent();
-    $('#cat-month').textContent = fmtMonth(data.month);
+    $('#cat-month').textContent = fmtPeriod(data.month);
   }
 
-  function renderMonthSelect(months, sel) {
+  function renderPeriodSelect(years, months, sel) {
     const el = $('#month');
-    el.innerHTML = months.map((m) => `<option value="${m}" ${m === sel ? 'selected' : ''}>${fmtMonth(m)}</option>`).join('');
+    const opt = (v, label) => `<option value="${v}" ${v === sel ? 'selected' : ''}>${label}</option>`;
+    el.innerHTML =
+      `<optgroup label="Full year">${years.slice().reverse().map((y) => opt(y, `${y} · full year`)).join('')}</optgroup>` +
+      `<optgroup label="Month">${months.slice().reverse().map((m) => opt(m, fmtMonth(m))).join('')}</optgroup>`;
     el.onchange = () => load(el.value);
+  }
+
+  function renderTimeToggle() {
+    const [first, second] = document.querySelectorAll('#time-mode button');
+    second.textContent = state.year ? 'Yearly' : 'Daily';
+    second.dataset.m = state.year ? 'yearly' : 'daily';
+    first.classList.toggle('on', state.mode === 'monthly');
+    second.classList.toggle('on', state.mode !== 'monthly');
   }
 
   function delta(pct, invert) {
@@ -41,7 +60,9 @@
       ['Total spent', money(k.spend, true), delta(k.spendDeltaPct, false)],
       ['Income', money(k.income, true), `<span class="d">${k.txnCount} transactions</span>`],
       ['Net saved', `<span class="${k.net >= 0 ? 'pos' : 'neg'}">${signedMoney(k.net)}</span>`, `<span class="d">${k.savingsRate == null ? '' : k.savingsRate + '% savings rate'}</span>`],
-      ['Avg / day', money(k.avgPerDay), `<span class="d">${fmtMonth(k.month)}</span>`],
+      k.period === 'year'
+        ? ['Avg / month', money(k.avgPerMonth), `<span class="d">over ${k.monthsWithData} month${k.monthsWithData === 1 ? '' : 's'} with data</span>`]
+        : ['Avg / day', money(k.avgPerDay), `<span class="d">${fmtMonth(k.month)}</span>`],
       ['Top category', `<span style="font-size:17px">${esc(k.topCategory)}</span>`, `<span class="d">${k.uncategorized ? k.uncategorized + ' uncategorized' : 'all sorted'}</span>`],
     ];
     $('#kpis').innerHTML = cards
@@ -64,7 +85,17 @@
 
   function renderTime() {
     const d = state.data;
-    if (state.mode === 'monthly') {
+    if (state.year && state.mode === 'monthly') {
+      $('#time-sub').textContent = `By month · ${d.month}`;
+      $('#chart-time').innerHTML = bars(d.monthly, (m) => m.spend, (m) => MONTH_ABBR[Number(m.month.slice(5)) - 1], false);
+    } else if (state.year) {
+      $('#time-sub').textContent = d.yearly.length > 1 ? `Last ${d.yearly.length} years` : 'Only one year of data so far';
+      $('#chart-time').innerHTML = bars(d.yearly, (y) => y.spend, (y) => y.month, false);
+      // highlight the selected year
+      const i = d.yearly.findIndex((y) => y.month === d.month);
+      const cols = document.querySelectorAll('#chart-time .bar-col');
+      if (cols[i]) { cols[i].classList.add('on'); cols[i].querySelector('.bar').classList.add('on'); }
+    } else if (state.mode === 'monthly') {
       $('#time-sub').textContent = 'Last 6 months';
       $('#chart-time').innerHTML = bars(d.monthly, (m) => m.spend, (m) => m.label.split(' ')[0], true);
     } else {
@@ -98,7 +129,7 @@
     const note = spikes.length
       ? `<div style="border-top:1px solid var(--line);padding-top:12px;margin-top:14px;font-size:12px;color:var(--text-2);display:flex;gap:8px;">
            <span style="color:var(--amber);flex-shrink:0;">${svg('warn', 15)}</span>
-           <span>${spikes.map((c) => { const o = overAvg(c); return `${esc(c.category)} <span class="neg">${o != null ? '+' + o + '%' : 'high'}</span>`; }).join(', ')} vs your 3-month average.</span>
+           <span>${spikes.map((c) => { const o = overAvg(c); return `${esc(c.category)} <span class="neg">${o != null ? '+' + o + '%' : 'high'}</span>`; }).join(', ')} vs your 3-${state.year ? 'year' : 'month'} average.</span>
          </div>`
       : '';
 
@@ -112,7 +143,7 @@
   }
 
   function renderMerchants(list) {
-    if (!list.length) { $('#merchants').innerHTML = '<div class="empty">No spending yet this month.</div>'; return; }
+    if (!list.length) { $('#merchants').innerHTML = `<div class="empty">No spending yet this ${state.year ? 'year' : 'month'}.</div>`; return; }
     $('#merchants').innerHTML = list
       .map((m) => `<div class="spread" style="padding:8px 0;border-bottom:1px solid var(--hair);font-size:13px;">
         <span>${esc(m.merchant)}</span>
@@ -123,7 +154,7 @@
 
   async function renderRecent() {
     const { rows } = await api(`/api/transactions?month=${state.month}&limit=8`);
-    if (!rows.length) { $('#recent').innerHTML = '<div class="empty">No transactions this month.</div>'; return; }
+    if (!rows.length) { $('#recent').innerHTML = `<div class="empty">No transactions this ${state.year ? 'year' : 'month'}.</div>`; return; }
     $('#recent').innerHTML = rows
       .map((t) => `<div class="row" style="padding:7px 0;border-bottom:1px solid var(--hair);gap:10px;font-size:13px;">
         <span class="mono muted" style="font-size:11px;width:44px;flex-shrink:0;">${t.date.slice(8)} ${new Date(t.date + 'T00:00:00Z').toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })}</span>

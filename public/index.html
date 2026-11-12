@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard · Ledgerline</title>
-  <link rel="stylesheet" href="/assets/styles.css?v=5">
+  <link rel="stylesheet" href="/assets/styles.css?v=8">
 </head>
 <body data-page="dashboard">
   <div class="layout">
@@ -16,7 +16,7 @@
         </div>
         <div class="row">
           <label class="row" style="gap:6px;">
-            <span class="eyebrow">Month</span>
+            <span class="eyebrow">Period</span>
             <select id="month"></select>
           </label>
           <a class="btn primary" href="/import">Import CSV</a>
@@ -26,7 +26,7 @@
       <div class="content">
           <div class="kpis" id="kpis"></div>
 
-          <div class="grid" style="grid-template-columns:1.55fr 1fr;">
+          <div class="grid" style="grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);">
             <div class="card">
               <div class="spread" style="margin-bottom:4px;">
                 <div><h3>Spending over time</h3><div class="sub" id="time-sub">Last 6 months</div></div>
@@ -52,6 +52,6 @@
   </div>
   <script src="/assets/config.js"></script>
   <script src="/assets/shell.js?v=8"></script>
-  <script src="/assets/dashboard.js?v=5"></script>
+  <script src="/assets/dashboard.js?v=6"></script>
 </body>
 </html>
