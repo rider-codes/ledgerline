@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ledgerline · See where your money went</title>
+  <meta name="description" content="A local-first personal finance tracker. Import a bank CSV, get every transaction auto-sorted, and ask an assistant where your money went. Try it with sample data.">
+  <meta name="theme-color" content="#0c0e12">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css?v=16">
+  <link rel="stylesheet" href="/assets/landing.css?v=2">
+</head>
+<body class="lp">
+
+  <header class="lp-nav">
+    <div class="lp-wrap lp-nav-in">
+      <a class="brand" href="/" aria-label="Ledgerline home">
+        <span class="mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h3" stroke="#3ddc97"/><path d="M10.5 7H20" stroke="#eef1f6"/><path d="M4 12h3" stroke="#f0883e"/><path d="M10.5 12H14" stroke="#eef1f6"/><path d="M4 17h3" stroke="#3ddc97"/><path d="M10.5 17H20" stroke="#eef1f6"/></svg></span>
+        <b>Ledgerline</b>
+      </a>
+      <nav class="lp-links" aria-label="Sections">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#assistant">Assistant</a>
+        <a href="#source">Open source</a>
+      </nav>
+      <div class="lp-nav-cta">
+        <a class="btn ghost sm" href="/login">Sign in</a>
+        <button class="btn primary sm" type="button" data-demo>Try the demo</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- hero -->
+    <section class="lp-wrap lp-hero">
+      <div class="lp-hero-copy">
+        <span class="eyebrow">Local-first personal finance</span>
+        <h1>See where your money went. <span class="lp-accent">Just ask.</span></h1>
+        <p class="lp-lead">Import a bank or card statement, watch every transaction sort itself, and ask an assistant things like &ldquo;what were my biggest purchases in August?&rdquo; All of it runs from a single SQLite file.</p>
+        <div class="lp-cta">
+          <button class="btn primary lg" type="button" data-demo>Explore with sample data</button>
+          <a class="btn lg" data-github-fork href="#" target="_blank" rel="noopener">
+            <svg width="17" height="17" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            Fork on GitHub
+          </a>
+        </div>
+        <p class="lp-note"><span data-demo-only>No sign-up needed: you get a private sandbox with 15 months of sample data. </span>Or <a href="/signup">create an account</a>.</p>
+        <p class="lp-err" role="alert"></p>
+      </div>
+      <figure class="lp-frame lp-hero-shot">
+        <div class="lp-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+        <img src="/assets/landing/dashboard.jpg" width="799" height="506" alt="The Ledgerline dashboard: spending cards, a six-month chart, and a category breakdown with spike warnings.">
+      </figure>
+    </section>
+
+    <ul class="lp-wrap lp-trust" aria-label="At a glance">
+      <li><b>CSV import</b><span>No bank logins, ever</span></li>
+      <li><b>Auto-sorted</b><span>Rules, keywords, and a model that learns</span></li>
+      <li><b>One file</b><span>Your data is a single SQLite database</span></li>
+      <li><b>Any screen</b><span>Desktop to phone, no app to install</span></li>
+    </ul>
+
+    <!-- how it works -->
+    <section class="lp-wrap lp-section" id="how">
+      <div class="lp-head">
+        <span class="eyebrow">How it works</span>
+        <h2>From a bank statement to answers in three steps</h2>
+      </div>
+
+      <div class="lp-step">
+        <div class="lp-step-copy">
+          <span class="lp-num">1</span>
+          <h3>Import a statement</h3>
+          <p>Drop in a CSV from your bank or card. Ledgerline detects the columns, works out which rows are income and which are spending, and shows a preview before anything is saved.</p>
+          <ul>
+            <li>Handles signed amounts or separate debit and credit columns</li>
+            <li>Skips duplicates, so importing the same file twice is safe</li>
+            <li>Sample bank and card files included to try</li>
+          </ul>
+        </div>
+        <figure class="lp-frame">
+          <div class="lp-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <img src="/assets/landing/import.jpg" width="800" height="500" loading="lazy" alt="The import screen matching a bank export's columns to date, amount and description, with a preview of the rows.">
+        </figure>
+      </div>
+
+      <div class="lp-step rev">
+        <div class="lp-step-copy">
+          <span class="lp-num">2</span>
+          <h3>Everything sorts itself</h3>
+          <p>Each transaction gets a category the moment it arrives. Fix one that's wrong and Ledgerline remembers.</p>
+          <ul>
+            <li>Your own rules come first, then built-in keywords</li>
+            <li>A small on-device model learns from every correction</li>
+            <li>Nothing is sent anywhere to categorize</li>
+          </ul>
+        </div>
+        <figure class="lp-frame">
+          <div class="lp-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <img src="/assets/landing/transactions.jpg" width="800" height="500" loading="lazy" alt="A list of August transactions grouped by day, each with an editable category and a monthly summary on the right.">
+        </figure>
+      </div>
+
+      <div class="lp-step">
+        <div class="lp-step-copy">
+          <span class="lp-num">3</span>
+          <h3>See it, then ask about it</h3>
+          <p>Browse a month or a whole year, follow the money from income to savings, or simply ask the assistant in plain English.</p>
+          <ul>
+            <li>Dashboard with spike warnings against your 3-month average</li>
+            <li>Cash-flow report from income to categories to savings</li>
+            <li>An assistant that answers from your own numbers</li>
+          </ul>
+        </div>
+        <figure class="lp-frame">
+          <div class="lp-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <img src="/assets/landing/reports.jpg" width="799" height="506" loading="lazy" alt="The cash-flow report: income flowing into spending categories and savings.">
+        </figure>
+      </div>
+    </section>
+
+    <!-- features -->
+    <section class="lp-wrap lp-section" id="features">
+      <div class="lp-head">
+        <span class="eyebrow">Features</span>
+        <h2>Small on purpose, careful where it counts</h2>
+      </div>
+      <div class="lp-grid">
+        <article class="lp-card"><h3>Dashboard</h3><p>Spending by month, by day, or across a full year, with a category breakdown and a warning when one runs well above your 3-month average.</p></article>
+        <article class="lp-card"><h3>Cash flow</h3><p>One picture of the month: income flowing into categories and savings. On a phone it becomes a clear list of bars.</p></article>
+        <article class="lp-card"><h3>Smart categories</h3><p>Rules you write, built-in keywords, then a classifier that learns from your corrections. An uncategorized queue keeps stragglers visible.</p></article>
+        <article class="lp-card"><h3>An assistant that checks the data</h3><p>The built-in assistant is instant, offline and exact. Plug in a local Ollama or Claude model if you want more natural phrasing.</p></article>
+        <article class="lp-card"><h3>Private by design</h3><p>Your records live in one SQLite file you control. There are no bank logins and no analytics, and no third party unless you turn on a hosted AI.</p></article>
+        <article class="lp-card"><h3>Measured, not assumed</h3><p>The retrieval behind the assistant is tested against a hand-labelled 50-question eval, and the results, including the weak spots, are published.</p></article>
+      </div>
+    </section>
+
+    <!-- assistant -->
+    <section class="lp-wrap lp-section lp-split" id="assistant">
+      <div class="lp-split-copy">
+        <span class="eyebrow">Assistant</span>
+        <h2>Ask it like you'd ask a friend who kept the books</h2>
+        <p>It reads only your own transactions. Questions about totals, comparisons and savings are answered with numbers computed from your data, and search questions list the matching transactions.</p>
+        <ul class="lp-asks">
+          <li>What were my biggest purchases in August?</li>
+          <li>Where can I save?</li>
+          <li>Compare this month to last month</li>
+          <li>Which subscriptions look unused?</li>
+          <li>Show me my Shell charges</li>
+        </ul>
+      </div>
+      <figure class="lp-frame">
+        <div class="lp-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+        <img src="/assets/landing/assistant.jpg" width="800" height="500" loading="lazy" alt="The assistant answering what the biggest purchases in August were, and where to save, with exact amounts.">
+      </figure>
+    </section>
+
+    <!-- try it -->
+    <section class="lp-wrap lp-section" id="try">
+      <div class="lp-banner" data-demo-only>
+        <div>
+          <h2>Try it in ten seconds</h2>
+          <p>One click puts you in a private sandbox filled with 15 months of sample transactions. Import a CSV, change a category, ask the assistant a question. Everything is deleted after a day.</p>
+          <p class="lp-small" data-demo-ai-only hidden>The demo assistant runs on a cloud AI model with a small daily limit, so your questions and a summary of the sample data are sent to Anthropic's API.</p>
+          <p class="lp-small">It's a demo: please don't enter real financial details.</p>
+        </div>
+        <div class="lp-banner-cta">
+          <button class="btn primary lg" type="button" data-demo>Explore with sample data</button>
+          <p class="lp-err" role="alert"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- open source -->
+    <section class="lp-wrap lp-section" id="source">
+      <div class="lp-head">
+        <span class="eyebrow">Open source</span>
+        <h2>Make a copy and run it yourself</h2>
+        <p class="lp-sub">Ledgerline is open source. Fork it on GitHub for your own copy, change the categories, or deploy it with the included Render blueprint.</p>
+      </div>
+      <div class="lp-source">
+        <div class="lp-source-cta">
+          <a class="btn primary lg" data-github-fork href="#" target="_blank" rel="noopener">
+            <svg width="17" height="17" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            Fork on GitHub
+          </a>
+          <a class="btn lg" data-github href="#" target="_blank" rel="noopener">View the code</a>
+          <ul class="lp-chips" aria-label="Built with">
+            <li>Node 22</li><li>Express</li><li>SQLite</li><li>Vanilla JS</li><li>No build step</li>
+          </ul>
+        </div>
+        <div class="lp-code">
+          <div class="lp-code-head"><span class="eyebrow">Run it locally</span><button class="btn sm" type="button" id="copy-clone">Copy</button></div>
+          <pre id="clone-cmd"><code>git clone <span data-clone-url>https://github.com/your-name/ledgerline.git</span>
+cd ledgerline
+npm install
+npm run seed
+npm start</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="lp-foot">
+    <div class="lp-wrap lp-foot-in">
+      <span><b>Ledgerline</b> &middot; a local-first finance tracker</span>
+      <span class="lp-foot-links"><a href="/login">Sign in</a><a href="/signup">Create account</a><a data-github href="#" target="_blank" rel="noopener">GitHub</a></span>
+    </div>
+  </footer>
+
+  <script src="/assets/config.js"></script>
+  <script src="/assets/landing.js?v=1"></script>
+</body>
+</html>

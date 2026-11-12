@@ -15,6 +15,9 @@ When asked where spending was high or low, name the specific months and categori
 When asked where to save, give concrete, quantified suggestions grounded in the user's actual spending
 (e.g. "cut delivery from 9 orders to 4 -> about $57/month, ~$685/year"). Prefer discretionary categories
 (Dining, Shopping, Subscriptions, Entertainment) and never suggest cutting rent, utilities, or health.
+Copy totals, percentages and counts exactly as they appear in the data. Never recompute a month or
+category total yourself and never relabel one figure as another (net savings is not a category).
+If the data does not contain a number you need, say so instead of estimating it.
 Be concise and specific. Use the user's currency symbol. Do NOT give investment advice.`;
 
 /* ------------------------------------------------------------------ *
@@ -496,15 +499,17 @@ async function streamOllama(userId, systemBase, message, history, emit, abort, c
 
 async function streamAnthropic(userId, systemBase, message, history, emit, abort, ctx) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
+  // ctx.anthropic (from the demo, see src/demoai.js) overrides the key, model and limits for one call
+  const o = ctx.anthropic || {};
+  const client = new Anthropic({ apiKey: o.apiKey || process.env.ANTHROPIC_API_KEY });
+  const model = o.model || process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
   const rag = await ragBlock(userId, message, ctx);
   let any = false;
   const stream = client.messages.stream(
     {
       model,
-      max_tokens: Number(process.env.ANTHROPIC_MAX_TOKENS || 4000),
-      thinking: { type: 'adaptive' },
+      max_tokens: o.maxTokens || Number(process.env.ANTHROPIC_MAX_TOKENS || 4000),
+      ...(o.thinking === false ? {} : { thinking: { type: 'adaptive' } }), // the demo skips extended thinking to keep answers fast and cheap
       system: `${systemBase}${rag}`,
       messages: [
         ...history.slice(-8).map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content) })),
@@ -548,7 +553,7 @@ async function askStream(userId, message, history, emit, opts = {}) {
   const summary = A.buildSummary(userId);
   const systemBase = `${SYSTEM_PROMPT}\n\n--- USER DATA SUMMARY ---\n${summary.text}`;
   const hist = normalizeHistory(history);
-  const ctx = { trace: opts.trace || null, retrieval: opts.retrieval || {}, evalMode: !!opts.evalMode };
+  const ctx = { trace: opts.trace || null, retrieval: opts.retrieval || {}, evalMode: !!opts.evalMode, anthropic: opts.anthropic || null };
   if (ctx.trace) Object.assign(ctx.trace, { configuredBackend: backend, defaultMonth: A.defaultMonth(userId), retrievalOpts: ctx.retrieval });
   const failEval = (why) => { if (ctx.evalMode) throw new Error(`evalMode: ${why}`); };
 
@@ -580,13 +585,13 @@ async function askStream(userId, message, history, emit, opts = {}) {
     emit({ type: 'meta', mode: 'rules' });
     emit({ type: 'note', text: `Local model unreachable (${r}). Showing built-in analysis.` });
   } else if (backend === 'anthropic') {
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!(ctx.anthropic && ctx.anthropic.apiKey) && !process.env.ANTHROPIC_API_KEY) {
       failEval('AI_BACKEND=anthropic but ANTHROPIC_API_KEY is not set');
       if (ctx.trace) Object.assign(ctx.trace, { fallbackFrom: 'anthropic', fallbackReason: 'no API key' });
       emit({ type: 'meta', mode: 'rules' });
       emit({ type: 'note', text: 'No ANTHROPIC_API_KEY set. Showing built-in analysis.' });
     } else {
-      const r = await runLLM(streamAnthropic, 'anthropic', process.env.ANTHROPIC_MODEL || 'claude-sonnet-5');
+      const r = await runLLM(streamAnthropic, 'anthropic', (ctx.anthropic && ctx.anthropic.model) || process.env.ANTHROPIC_MODEL || 'claude-sonnet-5');
       if (r === 'ok' || r === 'partial' || r === 'aborted') return;
       failEval(`anthropic backend failed (${r})`);
       if (ctx.trace) Object.assign(ctx.trace, { fallbackFrom: 'anthropic', fallbackReason: r });

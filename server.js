@@ -15,6 +15,8 @@ const app = express();
 const PUBLIC = path.join(__dirname, 'public');
 const PORT = process.env.PORT || 3000;
 const PROD = process.env.NODE_ENV === 'production';
+// Where the landing page's "Fork on GitHub" / "View source" buttons point (no trailing slash).
+const GITHUB_URL = String(process.env.GITHUB_URL || 'https://github.com/rider-codes/ledgerline').replace(/\/+$/, '');
 
 // Resolve a real session secret. If SESSION_SECRET is unset or still a placeholder,
 // generate a strong one and persist it under DATA_DIR so sessions survive restarts —
@@ -70,7 +72,9 @@ app.get('/assets/config.js', (req, res) => {
   res.type('application/javascript').set('Cache-Control', 'no-store');
   res.send(
     `window.__CURRENCY__ = ${JSON.stringify(process.env.CURRENCY || '$')};` +
-      `window.__DEMO__ = ${String(process.env.DEMO_MODE || '').toLowerCase() === 'true'};`
+      `window.__DEMO__ = ${String(process.env.DEMO_MODE || '').toLowerCase() === 'true'};` +
+      `window.__DEMO_AI__ = ${String(process.env.DEMO_MODE || '').toLowerCase() === 'true' && !!String(process.env.DEMO_ANTHROPIC_API_KEY || '').trim()};` + // a boolean only, never the key
+      `window.__GITHUB__ = ${JSON.stringify(GITHUB_URL)};`
   );
 });
 
@@ -103,8 +107,10 @@ app.get(['/login', '/signup'], (req, res) => {
   res.sendFile(path.join(PUBLIC, req.path === '/signup' ? 'signup.html' : 'login.html'));
 });
 
+// "/" is the landing page for visitors and the dashboard once signed in
+app.get('/', (req, res) => res.sendFile(path.join(PUBLIC, loadUser(req) ? 'index.html' : 'landing.html')));
+
 const PAGES = {
-  '/': 'index.html',
   '/transactions': 'transactions.html',
   '/rules': 'rules.html',
   '/reports': 'reports.html',

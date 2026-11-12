@@ -154,7 +154,16 @@ data. Sandboxes:
 - have no usable password (nobody can sign in to one again) and are deleted after
   `DEMO_TTL_HOURS` (default 24);
 - are capped at `DEMO_MAX_ACTIVE` (default 100) and rate-limited to 5 per hour per IP;
-- always use the built-in assistant, so anonymous visitors can't run up a hosted or local model.
+- use the built-in assistant by default, so anonymous visitors can't run up a hosted or local model.
+  If you set `DEMO_ANTHROPIC_API_KEY` (your key, kept on the server and never sent to a browser),
+  sandboxes get a cloud AI assistant on a small model instead, with a per-sandbox daily limit
+  (`DEMO_AI_DAILY_LIMIT`, 15), a site-wide daily cap (`DEMO_AI_GLOBAL_DAILY`, 300) and a short
+  output cap. Past a limit, or if the call fails, the built-in assistant answers. Questions and a
+  summary of the sample data are sent to Anthropic in that mode, which is why the landing page says
+  so.
+
+Signed-out visitors see a **landing page** at `/` (how it works, screenshots, a demo button, and
+Fork / View buttons that point at `GITHUB_URL`); signed-in users go straight to the dashboard.
 
 ## Data & privacy
 
@@ -193,6 +202,7 @@ src/
   db.js                SQLite schema + connection
   auth.js              signup / login + requireAuth middleware
   demo.js              one-click sandbox accounts (DEMO_MODE)
+  demoai.js            optional cloud assistant for sandboxes: server-side key, daily budgets
   seed.js              deterministic demo dataset
   csv.js               CSV parse, column detection, row normalization
   categorize.js        user rules + keyword defaults + Naive Bayes classifier

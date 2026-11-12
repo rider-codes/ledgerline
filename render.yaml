@@ -23,6 +23,10 @@ services:
         generateValue: true # Render creates a random secret once and keeps it
       - key: DEMO_MODE
         value: "true" # one-click sandbox with sample data; set to "false" for a private install
+      - key: DEMO_ANTHROPIC_API_KEY
+        sync: false # a secret: Render asks for it in the dashboard, it is never stored in git. Leave empty for no demo AI.
+      - key: GITHUB_URL
+        value: https://github.com/rider-codes/ledgerline # the landing page's Fork / View buttons
       - key: AI_BACKEND
         value: rules
       - key: EMBED_ENABLED

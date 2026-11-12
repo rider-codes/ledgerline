@@ -110,6 +110,7 @@
       clearInterval(tick);
       send.disabled = false;
       input.focus();
+      refreshPill();
     }
   }
 
@@ -127,10 +128,18 @@
   $('#chips').innerHTML = STARTERS.slice(1, 4).map((s) => `<button class="chip">${esc(s)}</button>`).join('');
   $('#chips').querySelectorAll('.chip').forEach((b) => (b.onclick = () => ask(b.textContent)));
 
-  api('/api/chat/config').then((c) => {
-    const dot = c.backend === 'rules' ? '' : `<span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--mint);margin-right:6px;"></span>`;
-    $('#model-pill').innerHTML = `${dot}${c.backend === 'rules' ? 'built-in analysis' : (c.backend === 'ollama' ? 'local · ' : '') + esc(c.model)}`;
-  }).catch(() => {});
+  // The pill shows which engine answers. In the demo it also counts the AI questions left today.
+  function refreshPill() {
+    return api('/api/chat/config').then((c) => {
+      const dot = c.backend === 'rules' ? '' : `<span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--mint);margin-right:6px;"></span>`;
+      let label;
+      if (c.demo && c.backend !== 'rules') label = `AI · ${c.demo.remaining} of ${c.demo.limit} left`;
+      else if (c.demo) label = 'built-in analysis · AI limit reached';
+      else label = c.backend === 'rules' ? 'built-in analysis' : (c.backend === 'ollama' ? 'local · ' : '') + esc(c.model);
+      $('#model-pill').innerHTML = `${dot}${label}`;
+    }).catch(() => {});
+  }
+  refreshPill();
 
   showStarters();
   input.focus();

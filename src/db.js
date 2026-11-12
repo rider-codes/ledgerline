@@ -64,6 +64,14 @@ db.exec(`
     vec            BLOB NOT NULL,          -- Float32 little-endian
     updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- demo mode: questions answered by the cloud model, per sandbox account and in total, per UTC day
+  CREATE TABLE IF NOT EXISTS ai_usage (
+    scope TEXT NOT NULL,                   -- 'global' or 'user:<id>'
+    day   TEXT NOT NULL,                   -- YYYY-MM-DD
+    count INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (scope, day)
+  );
 `);
 
 // Fixed category vocabulary. "Income" and "Uncategorized" are internal buckets.

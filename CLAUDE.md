@@ -65,6 +65,8 @@ Pages: Dashboard `/`, Transactions, Categories & Rules, Reports (Cash Flow / Spe
 - `ollama` — local model at `OLLAMA_URL` (this machine uses `llama3.2:3b`; embeddings use `nomic-embed-text`).
 - `anthropic` — Claude API; needs `ANTHROPIC_API_KEY`.
 
+Demo sandboxes (`DEMO_MODE=true`, `src/demo.js`) use the built-in `rules` backend unless `DEMO_ANTHROPIC_API_KEY` is set, in which case `src/demoai.js` gives them a small cloud model with per-sandbox and site-wide daily budgets (table `ai_usage`). That key is server-side only: never put it in `config.js`, a response, a log line or git. Signed-out visitors get `public/landing.html` at `/`; its GitHub buttons come from `GITHUB_URL`.
+
 `POST /api/chat` streams Server-Sent Events (`meta` / `delta` / `note` / `done` / `error`). Abort on `res.on('close')`, not `req.on('close')` — the request stream closes as soon as the body is read.
 
 ## Retrieval eval
