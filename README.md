@@ -38,6 +38,8 @@ reports, and chat with an assistant whose answers are **measured against a hand-
   "which subscriptions look unused?", "show me my Shell charges". Answers stream as they're written.
 - **Import CSV**: drag a file in, confirm the detected column mapping, preview, import. Duplicate
   rows are skipped, so re-importing a statement is safe.
+- **Works on phones.** Below 900px the sidebar becomes a top bar with a menu, transaction rows
+  become cards, and the cash-flow Sankey turns into a bar list. No separate mobile app or build.
 - **One-click demo mode** for public deployments: each visitor gets a private sandbox account
   with sample data.
 

@@ -58,9 +58,25 @@
       <span>You kept <span class="pos">${d.savingsRate == null ? '—' : d.savingsRate + '%'}</span> of income in ${fmtMonthLong(d.month)}.${topExp ? ` ${esc(topExp.category)} is your largest expense at ${money(topExp.amount)}.` : ''}</span>`;
     return `<div class="card" style="display:flex;flex-direction:column;">
       <div class="spread" style="margin-bottom:6px;"><div><div class="eyebrow">Cash flow</div><div class="sub">${fmtMonthLong(d.month)}</div></div></div>
-      <div id="sankey" style="min-height:520px;"></div>
+      <div id="sankey"></div>
       <div style="border-top:1px solid var(--line);padding-top:12px;margin-top:6px;display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--text-2);">${note}</div>
     </div>`;
+  }
+
+  // On phones the Sankey would shrink to unreadable text, so show the same flows as a bar list.
+  const narrow = window.matchMedia('(max-width: 760px)');
+
+  function drawFlowList(el, flows, total, d) {
+    const src = (d.sources && d.sources[0]) || { merchant: 'Income', amount: d.income };
+    const rows = flows.map((f) => {
+      const pct = Math.round((f.amount / total) * 1000) / 10;
+      const color = f.savings ? 'var(--mint)' : catColor(f.category);
+      return `<div class="flow-row">
+        <div class="flow-head"><span class="dot" style="background:${color}"></span><span class="name">${esc(f.category)}${f.spike ? ' <span class="neg">▲</span>' : ''}</span><span class="mono amt">${money(f.amount, true)} · ${pct}%</span></div>
+        <div class="flow-bar"><i style="width:${Math.max(1.5, pct)}%;background:${color}"></i></div>
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div class="flow-src"><span>${esc(src.merchant)}</span><span class="mono">${money(d.income, true)} · 100%</span></div>${rows}`;
   }
 
   function drawSankey() {
@@ -71,6 +87,7 @@
     if (!el) return;
     if (!flows.length) { el.innerHTML = '<div class="empty">No cash flow to show for this month.</div>'; return; }
     const total = flows.reduce((s, f) => s + f.amount, 0);
+    if (narrow.matches) { drawFlowList(el, flows, total, d); return; }
     const usable = spanH - gap * (flows.length - 1);
     const Ax = 40, Bx = 470, Cx = 800, Aw = 12;
     let y = top;
@@ -118,7 +135,7 @@
       <span>${esc(m.merchant)}</span><span class="row" style="gap:12px;"><span class="muted mono" style="font-size:11px;">${m.count}×</span><span class="mono">${money(m.amount, true)}</span></span></div>`).join('');
     return `
       <div class="card"><div class="spread" style="margin-bottom:6px;"><h3>Spending over time</h3><span class="sub">Last 6 months</span></div>${monthBars((r) => r.spend, true)}</div>
-      <div class="grid" style="grid-template-columns:1.4fr 1fr;">
+      <div class="grid cols-a">
         <div class="card">
           <div class="spread" style="margin-bottom:12px;"><h3>By category</h3><span class="sub">${fmtMonthLong(state.month)}</span></div>
           <div class="scroll-x"><table class="tbl">
@@ -147,7 +164,7 @@
     </tr>`).join('');
     return `
       <div class="card"><div class="spread" style="margin-bottom:6px;"><h3>Income over time</h3><span class="sub">Last 6 months</span></div>${monthBars((r) => r.income, true)}</div>
-      <div class="grid" style="grid-template-columns:1fr 1.3fr;">
+      <div class="grid cols-b">
         <div class="card">
           <div class="spread" style="margin-bottom:12px;"><h3>Sources</h3><span class="sub">${fmtMonthLong(state.month)}</span></div>
           <div class="scroll-x"><table class="tbl">
@@ -178,6 +195,7 @@
   document.querySelectorAll('.rtab').forEach((b) => {
     b.onclick = () => { state.tab = b.dataset.tab; renderTab(); };
   });
+  narrow.addEventListener('change', () => { if (state.tab === 'cashflow' && state.cf) drawSankey(); });
 
   load().catch((e) => toast(e.message, true));
 })();

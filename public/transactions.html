@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Transactions · Ledgerline</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/styles.css?v=15">
+  <link rel="stylesheet" href="/assets/styles.css?v=16">
 </head>
 <body data-page="transactions">
   <div class="layout">
@@ -14,14 +14,14 @@
       <div class="topbar">
         <h1>Transactions</h1>
         <div class="row">
-          <input id="q" placeholder="Search merchant…" style="width:220px;">
+          <input id="q" class="topsearch" placeholder="Search merchant…">
           <button class="btn primary" id="add-btn">+ Add transaction</button>
         </div>
       </div>
 
-      <div style="display:flex;flex:1;min-height:0;">
+      <div class="split">
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
-          <div class="row" style="gap:9px;padding:14px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap;">
+          <div class="row filters">
             <label class="row" style="gap:6px;"><span class="eyebrow">Month</span><select id="f-month"></select></label>
             <label class="row" style="gap:6px;"><span class="eyebrow">Category</span><select id="f-cat"></select></label>
             <label class="row" style="gap:6px;"><span class="eyebrow">Type</span>
@@ -35,7 +35,7 @@
           </div>
         </div>
 
-        <aside style="width:288px;flex-shrink:0;border-left:1px solid var(--line);background:#0e1116;padding:20px;">
+        <aside class="side-panel">
           <div class="eyebrow" style="margin-bottom:10px;">Summary</div>
           <div id="summary"></div>
         </aside>
@@ -45,7 +45,7 @@
 
   <div id="modal-root"></div>
   <script src="/assets/config.js"></script>
-  <script src="/assets/shell.js?v=11"></script>
+  <script src="/assets/shell.js?v=13"></script>
   <script src="/assets/transactions.js?v=5"></script>
 </body>
 </html>

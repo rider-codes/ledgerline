@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Assistant · Ledgerline</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/styles.css?v=15">
+  <link rel="stylesheet" href="/assets/styles.css?v=16">
 </head>
 <body data-page="assistant">
   <div class="layout">
@@ -17,11 +17,11 @@
       </div>
 
       <div style="flex:1;min-height:0;display:flex;justify-content:center;overflow:auto;">
-        <div id="thread" style="width:100%;max-width:768px;padding:28px 28px 8px;display:flex;flex-direction:column;gap:22px;"></div>
+        <div id="thread"></div>
       </div>
 
       <div class="composer">
-        <div style="width:100%;max-width:768px;margin:0 auto;display:flex;flex-direction:column;gap:10px;">
+        <div class="composer-in">
           <div class="wrap" id="chips"></div>
           <div class="box">
             <textarea id="input" rows="1" placeholder="Ask about your spending, budgets, or savings…"></textarea>
@@ -35,7 +35,7 @@
     </div>
   </div>
   <script src="/assets/config.js"></script>
-  <script src="/assets/shell.js?v=11"></script>
+  <script src="/assets/shell.js?v=13"></script>
   <script src="/assets/assistant.js?v=7"></script>
 </body>
 </html>

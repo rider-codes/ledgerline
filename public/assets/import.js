@@ -17,12 +17,15 @@
   ];
 
   function setStep(n) {
-    $('#step1').style.display = n === 1 ? '' : 'none';
-    $('#step2').style.display = n === 2 ? 'flex' : 'none';
+    // styles.css forces [hidden] to display:none !important, so the hidden attribute must be
+    // cleared as well as the inline display (steps 2, 3 and the footer start out hidden in the HTML)
+    const show = (el, on, display) => { el.hidden = !on; el.style.display = on ? display : 'none'; };
+    show($('#step1'), n === 1, '');
+    show($('#step2'), n === 2, 'flex');
     $('#step2').style.flexDirection = 'column';
     $('#step2').style.gap = '18px';
-    $('#step3').style.display = n === 3 ? '' : 'none';
-    $('#footer').style.display = n === 2 ? '' : 'none';
+    show($('#step3'), n === 3, '');
+    show($('#footer'), n === 2, '');
     document.querySelectorAll('#steps span[data-s]').forEach((el) => {
       const s = Number(el.dataset.s);
       el.style.color = s <= n ? '' : 'var(--text-3)';
@@ -53,7 +56,7 @@
         .concat(headers.map((h) => `<option value="${esc(h)}" ${mapping[key] === h ? 'selected' : ''}>${esc(h)}</option>`))
         .join('');
       return `<div class="row" style="gap:12px;">
-        <span style="width:150px;font-size:13px;color:var(--text-2);">${label}</span>
+        <span class="maplabel">${label}</span>
         <span style="color:var(--text-4);">←</span>
         <select data-key="${key}" style="flex:1;font-size:12.5px;" class="map-sel">${opts}</select>
       </div>`;

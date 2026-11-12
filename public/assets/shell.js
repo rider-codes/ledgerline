@@ -90,14 +90,35 @@
   async function mountShell(active) {
     const side = document.getElementById('side');
     if (!side) return;
+    // Wide screens: brand, nav and user stack in a sidebar (.side-menu uses display:contents).
+    // Narrow screens (<= 900px): a slim top bar; the burger opens .side-menu as a dropdown.
     side.innerHTML = `
-      <div class="brand"><span class="mark">${logo(16)}</span><b>Ledgerline</b></div>
-      <nav>${NAV.map(([href, icon, label]) => `<a href="${href}" class="${icon === active ? 'active' : ''}">${svg(icon)} ${label}</a>`).join('')}</nav>
-      <div class="side-foot">
-        <div class="who"><div class="avatar" id="uav">··</div><div class="meta"><div id="uname">…</div><div id="uemail"></div></div></div>
-        <button class="linkbtn" id="logout">Sign out</button>
+      <div class="side-head">
+        <div class="brand"><span class="mark">${logo(16)}</span><b>Ledgerline</b></div>
+        <button class="burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="side-menu">
+          <svg class="i-menu" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="i-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="side-menu" id="side-menu">
+        <nav>${NAV.map(([href, icon, label]) => `<a href="${href}" class="${icon === active ? 'active' : ''}">${svg(icon)} ${label}</a>`).join('')}</nav>
+        <div class="side-foot">
+          <div class="who"><div class="avatar" id="uav">··</div><div class="meta"><div id="uname">…</div><div id="uemail"></div></div></div>
+          <button class="linkbtn" id="logout">Sign out</button>
+        </div>
       </div>`;
     document.getElementById('logout').onclick = async () => { await api('/api/logout', { method: 'POST' }); location.href = '/login'; };
+
+    const burger = document.getElementById('burger');
+    const setMenu = (open) => {
+      side.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    };
+    burger.onclick = () => setMenu(!side.classList.contains('open'));
+    document.addEventListener('click', (e) => { if (side.classList.contains('open') && !side.contains(e.target)) setMenu(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+    window.matchMedia('(min-width: 901px)').addEventListener('change', (e) => { if (e.matches) setMenu(false); });
     try {
       const { user } = await api('/api/me');
       document.getElementById('uname').textContent = user.name;
@@ -107,7 +128,7 @@
         const main = document.getElementById('main');
         if (main && !main.querySelector('.demo-banner')) {
           main.insertAdjacentHTML('afterbegin',
-            `<div class="demo-banner"><span><b>Demo sandbox.</b> Everything here is sample data that only you can see. Feel free to import, edit and ask questions; it is cleared after a day.</span><a href="/signup">Create an account</a></div>`);
+            `<div class="demo-banner"><span><b>Demo sandbox.</b> Sample data only you can see, cleared after a day.</span><a href="/signup">Create an account</a></div>`);
         }
       }
     } catch { /* redirected */ }

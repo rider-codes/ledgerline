@@ -231,10 +231,139 @@ body[data-page="assistant"] #main { height:100vh; overflow:hidden; }
 .demo-banner b { color:var(--mint); font-weight:600; }
 .demo-banner a { flex-shrink:0; font-weight:500; }
 
-@media (max-width: 1200px) {
-  .kpis { grid-template-columns:repeat(2,1fr); }
+/* ---------- layout pieces that stack on small screens ---------- */
+.side-head { display:block; }
+.side-menu { display:contents; } /* wide screens: brand, nav and user stack in #side as before */
+.burger {
+  display:none; width:40px; height:40px; align-items:center; justify-content:center; cursor:pointer;
+  background:none; border:1px solid var(--line-2); border-radius:9px; color:var(--text-2);
 }
+.burger:hover { color:var(--text); border-color:#3a4658; }
+.burger .i-close, #side.open .burger .i-menu { display:none; }
+#side.open .burger .i-close { display:block; }
+
+.cols-main { grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); }
+.cols-2 { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+.cols-a { grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); }
+.cols-b { grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); }
+.kpis.four { grid-template-columns:repeat(4, minmax(0,1fr)); }
+.topsearch { width:220px; }
+.split { display:flex; flex:1; min-height:0; }
+.filters { gap:9px; padding:14px 24px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+.side-panel { width:288px; flex-shrink:0; border-left:1px solid var(--line); background:#0e1116; padding:20px; }
+.side-panel.wide { width:372px; padding:22px 20px; display:flex; flex-direction:column; gap:16px; }
+.rtabs { gap:24px; padding:0 24px; border-bottom:1px solid var(--line); background:#0e1116; }
+#thread { width:100%; max-width:768px; padding:28px 28px 8px; display:flex; flex-direction:column; gap:22px; }
+.composer-in { width:100%; max-width:768px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+.maplabel { width:150px; flex-shrink:0; font-size:13px; color:var(--text-2); }
+#sankey { min-height:520px; }
+
+/* cash flow as a bar list (phones; the Sankey is unreadable that small) */
+.flow-src { display:flex; justify-content:space-between; gap:12px; font-size:13px; color:var(--text-2); padding:2px 0 12px; margin-bottom:6px; border-bottom:1px solid var(--line); }
+.flow-row { padding:8px 0; }
+.flow-head { display:flex; align-items:center; gap:8px; font-size:13px; }
+.flow-head .name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.flow-head .amt { font-size:12px; color:var(--text-2); white-space:nowrap; }
+.flow-bar { height:6px; margin-top:6px; border-radius:3px; background:var(--elev); overflow:hidden; }
+.flow-bar i { display:block; height:100%; border-radius:3px; opacity:0.85; }
+
+@media (max-width: 1200px) {
+  .kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .kpis > .kpi:last-child:nth-child(odd) { grid-column:1 / -1; } /* 5 cards: let the last one span */
+}
+
+/* ---- tablet and phone: the sidebar becomes a slim top bar with a dropdown menu ---- */
 @media (max-width: 900px) {
-  #side { position:static; height:auto; width:100%; flex-direction:row; flex-wrap:wrap; }
   .layout { flex-direction:column; }
+  #side {
+    position:sticky; top:0; z-index:40; width:100%; height:auto; flex-direction:column; gap:0; padding:0;
+    border-right:none; border-bottom:1px solid var(--line);
+  }
+  .side-head { display:flex; align-items:center; justify-content:space-between; height:56px; padding:0 14px; }
+  .burger { display:inline-flex; }
+  .side-menu {
+    display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; padding:8px 10px 12px;
+    background:#0e1116; border-bottom:1px solid var(--line); box-shadow:0 18px 40px rgba(0,0,0,0.55);
+    max-height:calc(100vh - 56px); max-height:calc(100dvh - 56px); overflow-y:auto;
+  }
+  #side.open .side-menu { display:flex; }
+  #side nav a { padding:12px; font-size:15px; }
+  .side-foot { margin-top:8px; padding-top:10px; border-top:1px solid var(--line); flex-direction:row; align-items:center; justify-content:space-between; }
+  .linkbtn { padding:8px 10px; font-size:13px; }
+
+  .topbar { position:static; padding:12px 16px; flex-wrap:wrap; }
+  .content { padding:16px; gap:14px; }
+  .grid.cols-main, .grid.cols-2, .grid.cols-a, .grid.cols-b { grid-template-columns:minmax(0,1fr); }
+  .split { flex-direction:column; }
+  .side-panel, .side-panel.wide { width:auto; border-left:none; border-top:1px solid var(--line); padding:18px 16px; }
+  .filters { padding:12px 16px; }
+  .filters label { flex:1 1 150px; }
+  .filters label select { flex:1; min-width:0; }
+  .rtabs { padding:0 16px; gap:22px; overflow-x:auto; }
+  .rtab { white-space:nowrap; }
+
+  body[data-page="assistant"] #main { height:calc(100vh - 56px); height:calc(100dvh - 56px); }
+  #thread { padding:16px 14px 8px; gap:18px; }
+  .composer { padding:10px 12px max(12px, env(safe-area-inset-bottom)); }
+  #chips { flex-wrap:nowrap; overflow-x:auto; padding-bottom:2px; }
+  #chips .chip { flex-shrink:0; white-space:nowrap; }
+
+  .demo-banner { padding:9px 16px; flex-wrap:wrap; gap:4px 16px; }
+  .overlay { padding:12px; }
+  #toasts { left:12px; right:12px; bottom:12px; }
+  .toast { max-width:none; }
+
+  .auth { flex-direction:column; }
+  .auth .brandcol { width:100%; padding:20px 20px 22px; border-right:none; border-bottom:1px solid var(--line); gap:14px; }
+  .auth .brandcol > .mono, .auth .feat { display:none; }
+  .auth h1 { font-size:24px !important; }
+  .auth .formcol { padding:24px 20px 40px; align-items:flex-start; }
+  .auth form { width:100%; max-width:380px; }
+}
+
+@media (max-width: 760px) {
+  #sankey { min-height:0; }
+}
+
+/* ---- phone ---- */
+@media (max-width: 600px) {
+  .topbar .sub { display:none; }
+  .topbar h1 { font-size:16px; }
+  .topbar .row { flex-wrap:wrap; }
+  .topsearch { width:auto; flex:1; min-width:0; }
+
+  .kpis, .kpis.four { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .kpi { padding:12px; }
+  .kpi .v { font-size:19px; white-space:nowrap; }
+  .card { padding:14px; }
+
+  /* 16px inputs stop iOS from zooming the page on focus; buttons get a comfortable tap size */
+  input, select, textarea { font-size:16px; }
+  .btn { min-height:40px; }
+  .btn.sm { min-height:34px; }
+  .modal .head, .modal .foot { padding:14px 16px; }
+  .modal .pad { padding:16px; }
+
+  .bar-val { display:none; }          /* amounts above 12 narrow bars collide; keep the highlighted one */
+  .bar.on .bar-val { display:block; }
+  .maplabel { width:96px; }
+  #steps { font-size:12px; gap:8px; }
+
+  /* transactions: one two-line card per row instead of a five-column table */
+  #tbl, #tbl tbody { display:block; width:100%; }
+  #tbl tr:not([data-id]), #tbl tr:not([data-id]) td { display:block; }
+  #tbl tr[data-id] {
+    display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"name amt" "cat del";
+    gap:6px 10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--hair);
+  }
+  #tbl tr[data-id] td { display:block; padding:0; border:none; width:auto !important; }
+  #tbl tr[data-id] td:nth-child(1) { display:none; }
+  #tbl tr[data-id] td:nth-child(2) { grid-area:name; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #tbl tr[data-id] td:nth-child(3) { grid-area:cat; min-width:0; }
+  #tbl tr[data-id] td:nth-child(4) { grid-area:amt; text-align:right; }
+  #tbl tr[data-id] td:nth-child(5) { grid-area:del; text-align:right; }
+  #tbl .linkbtn { padding:8px; }
+
+  #rules-tbl th:nth-child(3), #rules-tbl td:nth-child(3) { display:none; }  /* the match counts */
+  .tbl th, .tbl td { padding-left:8px; padding-right:8px; }
 }
