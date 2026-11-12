@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
   <title>Ledgerline</title>
   <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#12161d" stroke="#2b3444"/>
-  <g transform="translate(4 4)" stroke-width="2.4" stroke-linecap="round">
+  <g transform="translate(4 4)" stroke-width="3" stroke-linecap="round">
     <path d="M4 7h3" stroke="#3ddc97"/><path d="M10.5 7H20" stroke="#eef1f6"/>
     <path d="M4 12h3" stroke="#f0883e"/><path d="M10.5 12H14" stroke="#eef1f6"/>
     <path d="M4 17h3" stroke="#3ddc97"/><path d="M10.5 17H20" stroke="#eef1f6"/>

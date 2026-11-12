@@ -81,6 +81,15 @@ app.get('/assets/config.js', (req, res) => {
   );
 });
 
+// Site icons: cacheable, unlike the rest of /assets (which is no-store). Chrome drops favicons sent with
+// no-store, which left the browser tab showing a generic globe. /favicon.ico is what browsers (and
+// bookmarks, feed readers, link previews) request by default.
+const ICON_CACHE = 'public, max-age=86400';
+for (const f of ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png']) {
+  app.get(`/assets/${f}`, (req, res) => res.set('Cache-Control', ICON_CACHE).sendFile(path.join(PUBLIC, 'assets', f)));
+}
+app.get('/favicon.ico', (req, res) => res.set('Cache-Control', ICON_CACHE).type('image/x-icon').sendFile(path.join(PUBLIC, 'assets', 'favicon.ico')));
+
 // static assets (css/js) — never the HTML pages
 app.use(
   '/assets',
