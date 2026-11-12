@@ -220,6 +220,17 @@ body[data-page="assistant"] #main { height:100vh; overflow:hidden; }
 .rtab:hover { color:var(--text-2); }
 .rtab.on { color:var(--text); font-weight:500; border-bottom-color:var(--mint); }
 
+/* ---------- demo mode ---------- */
+#demo-box .or { display:flex; align-items:center; gap:12px; color:var(--text-3); font-size:12px; margin-bottom:12px; }
+#demo-box .or::before, #demo-box .or::after { content:""; flex:1; border-top:1px solid var(--line); }
+.demo-note { margin-top:10px; font-size:12px; color:var(--text-3); text-align:center; line-height:1.5; }
+.demo-banner {
+  display:flex; align-items:center; justify-content:space-between; gap:16px; padding:9px 24px;
+  background:var(--mint-dim); border-bottom:1px solid var(--mint-line); color:var(--text-2); font-size:12.5px;
+}
+.demo-banner b { color:var(--mint); font-weight:600; }
+.demo-banner a { flex-shrink:0; font-weight:500; }
+
 @media (max-width: 1200px) {
   .kpis { grid-template-columns:repeat(2,1fr); }
 }

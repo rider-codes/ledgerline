@@ -5,8 +5,11 @@ const { askStream } = require('../agent');
 
 const router = express.Router();
 
+// demo sandboxes always use the built-in rules assistant (see src/demo.js)
+const backendFor = (req) => (req.user && req.user.demo ? 'rules' : (process.env.AI_BACKEND || 'rules').toLowerCase());
+
 router.get('/chat/config', (req, res) => {
-  const backend = (process.env.AI_BACKEND || 'rules').toLowerCase();
+  const backend = backendFor(req);
   res.json({
     backend,
     model:
@@ -40,7 +43,7 @@ router.post('/chat', async (req, res) => {
   res.on('close', () => { if (!res.writableEnded) abort.abort(); clearInterval(heartbeat); });
 
   try {
-    await askStream(req.user.id, message, history, send, { abortSignal: abort.signal });
+    await askStream(req.user.id, message, history, send, { abortSignal: abort.signal, backend: backendFor(req) });
     send({ type: 'done' });
   } catch (e) {
     if (!abort.signal.aborted) {

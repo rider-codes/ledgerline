@@ -83,11 +83,15 @@
     return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
   }
 
+  // Ledgerline mark: three ledger lines, each entry coloured like the rest of the site
+  // (mint = money in, amber = money out). Keep in sync with assets/favicon.svg and the auth pages.
+  const logo = (w) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h3" stroke="#3ddc97"/><path d="M10.5 7H20" stroke="#eef1f6"/><path d="M4 12h3" stroke="#f0883e"/><path d="M10.5 12H14" stroke="#eef1f6"/><path d="M4 17h3" stroke="#3ddc97"/><path d="M10.5 17H20" stroke="#eef1f6"/></svg>`;
+
   async function mountShell(active) {
     const side = document.getElementById('side');
     if (!side) return;
     side.innerHTML = `
-      <div class="brand"><span class="mark">${svg('logo', 15)}</span><b>Ledgerline</b></div>
+      <div class="brand"><span class="mark">${logo(16)}</span><b>Ledgerline</b></div>
       <nav>${NAV.map(([href, icon, label]) => `<a href="${href}" class="${icon === active ? 'active' : ''}">${svg(icon)} ${label}</a>`).join('')}</nav>
       <div class="side-foot">
         <div class="who"><div class="avatar" id="uav">··</div><div class="meta"><div id="uname">…</div><div id="uemail"></div></div></div>
@@ -97,12 +101,19 @@
     try {
       const { user } = await api('/api/me');
       document.getElementById('uname').textContent = user.name;
-      document.getElementById('uemail').textContent = user.email;
+      document.getElementById('uemail').textContent = user.demo ? 'Sandbox account' : user.email;
       document.getElementById('uav').textContent = (user.name || user.email).slice(0, 2).toUpperCase();
+      if (user.demo) {
+        const main = document.getElementById('main');
+        if (main && !main.querySelector('.demo-banner')) {
+          main.insertAdjacentHTML('afterbegin',
+            `<div class="demo-banner"><span><b>Demo sandbox.</b> Everything here is sample data that only you can see. Feel free to import, edit and ask questions; it is cleared after a day.</span><a href="/signup">Create an account</a></div>`);
+        }
+      }
     } catch { /* redirected */ }
   }
 
-  window.LL = { api, money, signedMoney, esc, catColor, toast, debounce, svg, icon: svg, mountShell, CUR };
+  window.LL = { api, money, signedMoney, esc, catColor, toast, debounce, svg, icon: svg, logo, mountShell, CUR };
   document.addEventListener('DOMContentLoaded', () => {
     if (document.body.dataset.page) mountShell(document.body.dataset.page);
   });

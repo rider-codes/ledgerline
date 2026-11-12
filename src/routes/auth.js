@@ -3,6 +3,7 @@
 const express = require('express');
 const { signup, login, loadUser } = require('../auth');
 const { rateLimit } = require('../ratelimit');
+const demo = require('../demo');
 
 const router = express.Router();
 
@@ -29,6 +30,21 @@ router.post('/login', ipSprayLimit, loginLimit, (req, res) => {
     loginLimit.reset(req, res); // clear the counter on success
     res.json({ user });
   } catch (e) {
+    res.status(e.status || 500).json({ error: e.status ? e.message : 'Server error' });
+  }
+});
+
+// One-click demo: a private sandbox account with sample data (DEMO_MODE=true only).
+// 5 per hour per IP; the account cap and expiry live in src/demo.js.
+const demoLimit = rateLimit({ windowMs: 60 * 60_000, max: 5, message: 'Too many demo sessions from this device. Try again later.' });
+router.post('/demo', ipSprayLimit, demoLimit, (req, res) => {
+  if (!demo.enabled()) return res.status(404).json({ error: 'Unknown endpoint.' });
+  try {
+    const user = demo.createDemoUser();
+    req.session.userId = user.id;
+    res.json({ user: { ...user, demo: true } });
+  } catch (e) {
+    if (!e.status) console.error('demo error:', e);
     res.status(e.status || 500).json({ error: e.status ? e.message : 'Server error' });
   }
 });

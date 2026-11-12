@@ -12,6 +12,7 @@ fit: their filesystem is temporary, so every user and transaction would be lost.
 | `NODE_ENV` | `production` | HTTPS-only session cookie; trusts one proxy hop |
 | `DATA_DIR` | the disk's mount path, e.g. `/var/data` | DB + session secret survive redeploys |
 | `SESSION_SECRET` | long random string | signs login cookies; keep it stable or everyone is logged out |
+| `DEMO_MODE` | `true` for a public showcase | Adds "Explore with sample data" to the login page: every visitor gets a private sandbox account with sample transactions, always on the built-in assistant, deleted after `DEMO_TTL_HOURS` (24); at most `DEMO_MAX_ACTIVE` (100) at once; 5 per hour per IP. Set `false` for a private install. |
 | `AI_BACKEND` | `rules` | no Ollama on the server; `anthropic` also works with `ANTHROPIC_API_KEY` |
 | `EMBED_ENABLED` | `false` | semantic search needs a local Ollama |
 | `CURRENCY` | e.g. `₹` | symbol shown in the UI |
@@ -36,7 +37,8 @@ has a few seconds of downtime on each deploy (the disk moves to the new instance
 ## After deploying
 
 - **Do not run `npm run seed` in production.** It creates `demo@example.com` with the public
-  password `demo1234`.
+  password `demo1234`. Use `DEMO_MODE=true` instead for a public demo: its sandbox accounts
+  cannot be signed in to again and expire on their own.
 - **Backups:** the whole state is `$DATA_DIR/finance.db` (+ `-wal`/`-shm`). Render takes daily disk
   snapshots; for an off-site copy, open the service's **Shell** and run
   `node --experimental-sqlite -e "new (require('node:sqlite').DatabaseSync)('/var/data/finance.db').exec(\"VACUUM INTO '/var/data/backup.db'\")"`,

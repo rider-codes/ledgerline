@@ -68,7 +68,10 @@ app.get('/healthz', (req, res) => res.type('text').send('ok'));
 // runtime config for the frontend (currency symbol) — a blocking script loaded before shell.js
 app.get('/assets/config.js', (req, res) => {
   res.type('application/javascript').set('Cache-Control', 'no-store');
-  res.send(`window.__CURRENCY__ = ${JSON.stringify(process.env.CURRENCY || '$')};`);
+  res.send(
+    `window.__CURRENCY__ = ${JSON.stringify(process.env.CURRENCY || '$')};` +
+      `window.__DEMO__ = ${String(process.env.DEMO_MODE || '').toLowerCase() === 'true'};`
+  );
 });
 
 // static assets (css/js) — never the HTML pages

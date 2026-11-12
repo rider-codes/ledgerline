@@ -57,26 +57,11 @@ const M = {
   Education: ['Udemy'],
 };
 
-function run() {
-  if (RESET) {
-    db.exec('DELETE FROM transactions; DELETE FROM rules; DELETE FROM nb_model; DELETE FROM users;');
-    console.log('reset: all data cleared');
-  }
-
-  let user = db.prepare('SELECT id FROM users WHERE email = ?').get(DEMO_EMAIL);
-  if (user) {
-    db.prepare('DELETE FROM transactions WHERE user_id = ?').run(user.id);
-    db.prepare('DELETE FROM rules WHERE user_id = ?').run(user.id);
-    db.prepare('DELETE FROM nb_model WHERE user_id = ?').run(user.id);
-  } else {
-    const hash = bcrypt.hashSync(DEMO_PASSWORD, 10);
-    const info = db
-      .prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)')
-      .run(DEMO_EMAIL, hash, 'Demo User');
-    user = { id: Number(info.lastInsertRowid) };
-  }
-  const uid = user.id;
-
+// Fill a user with the demo dataset: ~270 transactions, a few rules and a warmed-up classifier.
+// The RNG is re-seeded on every call, so each user gets identical data. The caller owns the
+// user row (and any surrounding transaction).
+function seedUserData(uid) {
+  _s = 0x9e3779b9;
   const insert = db.prepare(
     `INSERT INTO transactions (user_id, date, amount, type, category, merchant, note, source)
      VALUES (?, ?, ?, ?, ?, ?, '', 'seed')`
@@ -179,11 +164,37 @@ function run() {
   examples.push(['Netflix subscription', 'Subscriptions']);
   examples.push(['Spotify premium', 'Subscriptions']);
   for (const [text, cat] of examples) learn(uid, text, cat);
-
-  console.log(`seeded: demo user ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
-  console.log(`        ${count} transactions from ${START} to ${END}`);
-  console.log(`        5 rules, Naive Bayes warmed with ${examples.length} examples`);
+  return { count, rules: 5, examples: examples.length };
 }
 
-run();
-db.close();
+// CLI: the shared local demo account (demo@example.com).
+function run() {
+  if (RESET) {
+    db.exec('DELETE FROM transactions; DELETE FROM rules; DELETE FROM nb_model; DELETE FROM users;');
+    console.log('reset: all data cleared');
+  }
+
+  let user = db.prepare('SELECT id FROM users WHERE email = ?').get(DEMO_EMAIL);
+  if (user) {
+    db.prepare('DELETE FROM transactions WHERE user_id = ?').run(user.id);
+    db.prepare('DELETE FROM rules WHERE user_id = ?').run(user.id);
+    db.prepare('DELETE FROM nb_model WHERE user_id = ?').run(user.id);
+  } else {
+    const hash = bcrypt.hashSync(DEMO_PASSWORD, 10);
+    const info = db
+      .prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)')
+      .run(DEMO_EMAIL, hash, 'Demo User');
+    user = { id: Number(info.lastInsertRowid) };
+  }
+  const r = seedUserData(user.id);
+  console.log(`seeded: demo user ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+  console.log(`        ${r.count} transactions from ${START} to ${END}`);
+  console.log(`        ${r.rules} rules, Naive Bayes warmed with ${r.examples} examples`);
+}
+
+if (require.main === module) {
+  run();
+  db.close();
+}
+
+module.exports = { seedUserData, START, END };

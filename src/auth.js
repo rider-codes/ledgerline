@@ -11,8 +11,12 @@ function httpError(status, message) {
   return e;
 }
 
+const DEMO_EMAIL_RE = /@demo\.ledgerline\.test$/i; // sandbox accounts from src/demo.js
+
 function publicUser(row) {
-  return row ? { id: row.id, email: row.email, name: row.name || row.email.split('@')[0] } : null;
+  return row
+    ? { id: row.id, email: row.email, name: row.name || row.email.split('@')[0], demo: DEMO_EMAIL_RE.test(row.email) }
+    : null;
 }
 
 function signup({ email, password, name }) {

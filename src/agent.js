@@ -542,7 +542,9 @@ function normalizeHistory(history) {
  *                   throw instead of silently falling back to a weaker path
  */
 async function askStream(userId, message, history, emit, opts = {}) {
-  const backend = (process.env.AI_BACKEND || 'rules').toLowerCase();
+  // opts.backend overrides AI_BACKEND for one call (demo sandboxes are pinned to 'rules' so
+  // anonymous visitors can't run up a paid or local model)
+  const backend = String(opts.backend || process.env.AI_BACKEND || 'rules').toLowerCase();
   const summary = A.buildSummary(userId);
   const systemBase = `${SYSTEM_PROMPT}\n\n--- USER DATA SUMMARY ---\n${summary.text}`;
   const hist = normalizeHistory(history);

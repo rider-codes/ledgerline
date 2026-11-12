@@ -6,7 +6,8 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["--experimental-sqlite", "server.js"],
       "port": 3000,
-      "autoPort": true
+      "autoPort": true,
+      "env": { "DEMO_MODE": "true" }
     }
   ]
 }

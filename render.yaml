@@ -21,6 +21,8 @@ services:
         value: /var/data
       - key: SESSION_SECRET
         generateValue: true # Render creates a random secret once and keeps it
+      - key: DEMO_MODE
+        value: "true" # one-click sandbox with sample data; set to "false" for a private install
       - key: AI_BACKEND
         value: rules
       - key: EMBED_ENABLED
