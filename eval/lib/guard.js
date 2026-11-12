@@ -1,13 +1,13 @@
 'use strict';
 
 // Eval tooling must never run against the live database. src/db.js opens DB_PATH if set and
-// otherwise data/finance.db (creating tables, switching to WAL), so we refuse to proceed
+// otherwise $DATA_DIR/finance.db (creating tables, switching to WAL), so we refuse to proceed
 // unless DB_PATH points at a different, existing file. Call this BEFORE requiring anything in src/.
 
 const fs = require('node:fs');
 const path = require('node:path');
 
-const REAL_DB = path.resolve(__dirname, '..', '..', 'data', 'finance.db');
+const { DEFAULT_DB_PATH: REAL_DB } = require('../../src/paths'); // honours DATA_DIR
 const same = (a, b) => path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase();
 
 function assertSnapshotPath(p) {

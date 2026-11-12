@@ -25,6 +25,7 @@ Node + Express 4 (CommonJS), SQLite via `node:sqlite`, `cookie-session`, `bcrypt
 ```
 server.js            Express entry: session secret, /healthz, /assets/config.js, routes, error handler
 src/
+  paths.js           DATA_DIR / default DB path / session-secret path (no side effects)
   db.js              SQLite connection + schema + CATEGORIES (single source of the category list)
   auth.js            signup / login / requireAuth
   ratelimit.js       in-memory fixed-window rate limiter (login, signup)
@@ -41,6 +42,7 @@ public/              *.html pages + assets/ (per-page JS, shell.js, styles.css, 
 eval/                retrieval eval harness (see "Retrieval eval" below)
 mockups/             original design mockups (reference only, not served)
 DESIGN.md            system design doc
+DEPLOY.md            deployment guide (Render); render.yaml is the Blueprint
 README.md            user-facing docs
 ```
 
@@ -67,7 +69,7 @@ Pages: Dashboard `/`, Transactions, Categories & Rules, Reports (Cash Flow / Spe
 
 ## Retrieval eval
 
-Work in progress on the `eval-harness` branch: a 50-question eval comparing keyword, semantic and blended retrieval. Question format, gold-label rules and scoring definitions are in `eval/FORMAT.md`; check a question file with `node --experimental-sqlite eval/validate-questions.js <file> [--db <snapshot>]`.
+A 50-question eval comparing keyword, semantic and blended retrieval. Question format, gold-label rules and scoring definitions are in `eval/FORMAT.md`; check a question file with `node --experimental-sqlite eval/validate-questions.js <file> [--db <snapshot>]`.
 
 - `retrieve(userId, query, opts)` takes `mode` (`auto` = the app's own logic | `lexical` | `semantic` | `hybrid`), `weight`, `semMin`, `defaultMonth`, and `evalMode`. It also returns per-row `scores`, the true `matchCount`, and `sqlTotals` (uncapped SQL totals — `totalSpend`/`totalIncome` are only sums over the returned rows).
 - `evalMode` never writes embeddings and throws instead of degrading (embeddings off, Ollama down, any candidate row not embedded, LLM backend failure). Use it for every eval run.
@@ -90,4 +92,8 @@ Work in progress on the `eval-harness` branch: a 50-question eval comparing keyw
 
 ## Deployment status
 
-Not deployed. This is a stateful Express app with a local SQLite file and SSE, so it does **not** fit Vercel as-is. Chosen target is Render or Railway with a persistent disk and `AI_BACKEND=rules`. Prep is still to do: make the data directory configurable (`DATA_DIR`, including the session-secret path), add `render.yaml`, pin the Node version, and write `DEPLOY.md`.
+Prepared for Render, not yet deployed. This is a stateful Express app with a local SQLite file and SSE, so it does **not** fit Vercel as-is. Steps and settings are in `DEPLOY.md`; `render.yaml` is the Blueprint (persistent disk at `/var/data`, `AI_BACKEND=rules`).
+
+- `DATA_DIR` (resolved in `src/paths.js`, no side effects) holds the DB and `.session-secret`; `DB_PATH` still overrides the DB file alone.
+- `NODE_ENV=production` makes the session cookie `secure` and sets `trust proxy` to 1 (`TRUST_PROXY` overrides; `0` disables). Without trust proxy, the secure cookie is never sent and every visitor shares the proxy's IP in the rate limiter.
+- Node is pinned to 22.x (`engines`, `.node-version`).

@@ -9,20 +9,22 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 
 const { requireAuth, loadUser } = require('./src/auth');
+const { SESSION_SECRET_FILE } = require('./src/paths');
 
 const app = express();
 const PUBLIC = path.join(__dirname, 'public');
 const PORT = process.env.PORT || 3000;
+const PROD = process.env.NODE_ENV === 'production';
 
 // Resolve a real session secret. If SESSION_SECRET is unset or still a placeholder,
-// generate a strong one and persist it under data/ so sessions survive restarts —
+// generate a strong one and persist it under DATA_DIR so sessions survive restarts —
 // never fall back to a shared, guessable default.
 function resolveSessionSecret() {
   const raw = String(process.env.SESSION_SECRET || '').trim();
   const isPlaceholder = !raw || /^(change[- ]?me|dev[- ]?secret|your[- ]?secret|secret|xxx+)/i.test(raw) || raw.length < 16;
   if (!isPlaceholder) return raw;
 
-  const file = path.join(__dirname, 'data', '.session-secret');
+  const file = SESSION_SECRET_FILE;
   try {
     const existing = fs.readFileSync(file, 'utf8').trim();
     if (existing.length >= 32) return existing;
@@ -32,7 +34,7 @@ function resolveSessionSecret() {
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, generated, { mode: 0o600 });
-    console.warn('[ledgerline] SESSION_SECRET not set — generated one at data/.session-secret. Set SESSION_SECRET in .env to use your own.');
+    console.warn(`[ledgerline] SESSION_SECRET not set — generated one at ${file}. Set SESSION_SECRET to use your own.`);
   } catch (e) {
     console.warn(`[ledgerline] SESSION_SECRET not set and could not persist a generated one (${e.message}); using an in-memory secret (sessions reset on restart).`);
   }
@@ -42,6 +44,11 @@ function resolveSessionSecret() {
 const SESSION_SECRET = resolveSessionSecret();
 
 app.disable('x-powered-by');
+// Behind a hosting proxy (Render, Railway) TLS ends at the proxy; trust its X-Forwarded-* headers
+// so req.secure / req.ip are right — needed for secure cookies and per-IP rate limiting.
+// TRUST_PROXY is a hop count (0 disables); empty means the default: 1 in production, off otherwise.
+const trustProxy = process.env.TRUST_PROXY || (PROD ? '1' : '');
+if (trustProxy) app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
 app.use(express.json({ limit: '8mb' }));
 app.use(express.urlencoded({ extended: true, limit: '8mb' }));
 app.use(
@@ -50,6 +57,7 @@ app.use(
     secret: SESSION_SECRET,
     httpOnly: true,
     sameSite: 'lax',
+    secure: PROD, // HTTPS-only cookie in production
     maxAge: 30 * 24 * 60 * 60 * 1000,
   })
 );
