@@ -20,6 +20,23 @@ test('DEMO_MODE is off unless set to "true"', () => {
   if (before === undefined) delete process.env.DEMO_MODE; else process.env.DEMO_MODE = before;
 });
 
+test('DEMO_ONLY is off by default, and turning it on also turns the demo on', () => {
+  const saved = { mode: process.env.DEMO_MODE, only: process.env.DEMO_ONLY };
+  try {
+    delete process.env.DEMO_MODE; delete process.env.DEMO_ONLY;
+    assert.equal(demo.only(), false);
+    assert.equal(demo.enabled(), false);
+    process.env.DEMO_ONLY = 'true';
+    assert.equal(demo.only(), true);
+    assert.equal(demo.enabled(), true, 'DEMO_ONLY implies DEMO_MODE');
+    process.env.DEMO_ONLY = 'false'; process.env.DEMO_MODE = 'true';
+    assert.equal(demo.only(), false);
+    assert.equal(demo.enabled(), true);
+  } finally {
+    for (const [k, v] of [['DEMO_MODE', saved.mode], ['DEMO_ONLY', saved.only]]) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
+});
+
 test('a sandbox gets the full sample dataset and leaves other users untouched', () => {
   clean();
   const mine = count('SELECT COUNT(*) AS c FROM transactions WHERE user_id = ?', USER);

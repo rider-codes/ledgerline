@@ -128,7 +128,7 @@
         const main = document.getElementById('main');
         if (main && !main.querySelector('.demo-banner')) {
           main.insertAdjacentHTML('afterbegin',
-            `<div class="demo-banner"><span><b>Demo sandbox.</b> Sample data only you can see, cleared after a day.</span><a href="/signup">Create an account</a></div>`);
+            `<div class="demo-banner"><span><b>Demo sandbox.</b> Sample data only you can see, cleared after a day.</span>${window.__DEMO_ONLY__ ? '<a href="/about#source">Copy the project</a>' : '<a href="/signup">Create an account</a>'}</div>`);
         }
       }
     } catch { /* redirected */ }

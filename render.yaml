@@ -23,6 +23,8 @@ services:
         generateValue: true # Render creates a random secret once and keeps it
       - key: DEMO_MODE
         value: "true" # one-click sandbox with sample data; set to "false" for a private install
+      - key: DEMO_ONLY
+        value: "true" # public showcase: no sign-up or sign-in, so no one's real finances reach the server. "false" = real accounts allowed
       - key: DEMO_ANTHROPIC_API_KEY
         sync: false # a secret: Render asks for it in the dashboard, it is never stored in git. Leave empty for no demo AI.
       - key: GITHUB_URL

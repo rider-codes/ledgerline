@@ -3,7 +3,7 @@
 // One-click demo: every visitor gets a private sandbox account filled with the sample dataset,
 // so they can import, edit and ask the assistant without seeing or changing anyone else's data.
 // Sandbox accounts have an unusable password (nobody can sign in to them again), live for
-// DEMO_TTL_HOURS, and are swept on the next demo start. Off unless DEMO_MODE=true.
+// DEMO_TTL_HOURS, and are swept on the next demo start. Off unless DEMO_MODE=true (or DEMO_ONLY=true).
 
 const crypto = require('node:crypto');
 const { db } = require('./db');
@@ -12,7 +12,11 @@ const { seedUserData } = require('./seed');
 const DOMAIN = 'demo.ledgerline.test'; // .test is reserved, so it can never collide with a real address
 const EMAIL_SQL = `demo-%@${DOMAIN}`;
 
-const enabled = () => String(process.env.DEMO_MODE || '').toLowerCase() === 'true';
+const flag = (name) => String(process.env[name] || '').toLowerCase() === 'true';
+// DEMO_ONLY: a public showcase with no real accounts. Sign-up and sign-in are switched off, so the only
+// way in is a sandbox, and nobody's real finances ever land on the server. Implies DEMO_MODE.
+const only = () => flag('DEMO_ONLY');
+const enabled = () => flag('DEMO_MODE') || only();
 const ttlHours = () => Math.max(1, Number(process.env.DEMO_TTL_HOURS) || 24);
 const maxActive = () => Math.max(1, Number(process.env.DEMO_MAX_ACTIVE) || 100);
 const isDemoEmail = (email) => String(email || '').toLowerCase().endsWith(`@${DOMAIN}`);
@@ -53,4 +57,4 @@ function createDemoUser() {
   }
 }
 
-module.exports = { enabled, isDemoEmail, createDemoUser, sweepExpired, activeCount, ttlHours, DOMAIN };
+module.exports = { enabled, only, isDemoEmail, createDemoUser, sweepExpired, activeCount, ttlHours, DOMAIN };

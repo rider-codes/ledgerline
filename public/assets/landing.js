@@ -7,6 +7,9 @@
   all('[data-github-fork]').forEach((a) => { a.href = gh ? gh + '/fork' : '#'; });
   all('[data-clone-url]').forEach((s) => { if (gh) s.textContent = gh + '.git'; });
 
+  // demo-only sites have no accounts, so hide every sign-in / create-account link
+  if (window.__DEMO_ONLY__) all('[data-accounts]').forEach((e) => { e.hidden = true; });
+
   // demo: one click creates a private sandbox with sample data (server needs DEMO_MODE=true)
   if (!window.__DEMO__) all('[data-demo], [data-demo-only]').forEach((e) => { e.hidden = true; });
   all('[data-demo-ai-only]').forEach((e) => { e.hidden = !window.__DEMO_AI__; });

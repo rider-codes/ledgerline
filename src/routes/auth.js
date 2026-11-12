@@ -13,7 +13,13 @@ const loginLimit = rateLimit({ windowMs: 15 * 60_000, max: 8, keyFrom: emailFrom
 const signupLimit = rateLimit({ windowMs: 60 * 60_000, max: 5, keyFrom: emailFrom, message: 'Too many sign-up attempts from this device. Try again later.' });
 const ipSprayLimit = rateLimit({ windowMs: 15 * 60_000, max: 40, message: 'Too many attempts from this device. Try again later.' });
 
-router.post('/signup', ipSprayLimit, signupLimit, (req, res) => {
+// DEMO_ONLY sites have no real accounts: refuse sign-up and sign-in at the API, not just in the UI
+const noAccounts = (req, res, next) =>
+  demo.only()
+    ? res.status(403).json({ error: 'Accounts are turned off on this demo. Use "Explore with sample data", or copy the project to run your own.' })
+    : next();
+
+router.post('/signup', noAccounts, ipSprayLimit, signupLimit, (req, res) => {
   try {
     const user = signup(req.body || {});
     req.session.userId = user.id;
@@ -23,7 +29,7 @@ router.post('/signup', ipSprayLimit, signupLimit, (req, res) => {
   }
 });
 
-router.post('/login', ipSprayLimit, loginLimit, (req, res) => {
+router.post('/login', noAccounts, ipSprayLimit, loginLimit, (req, res) => {
   try {
     const user = login(req.body || {});
     req.session.userId = user.id;

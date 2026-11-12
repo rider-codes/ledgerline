@@ -162,6 +162,10 @@ data. Sandboxes:
   summary of the sample data are sent to Anthropic in that mode, which is why the landing page says
   so.
 
+For a public showcase also set `DEMO_ONLY=true`: sign-up and sign-in are switched off (the pages
+redirect to the landing page and the API answers 403), so nobody's real finances ever reach your
+server and the only way in is a sandbox. People who want to use their own data run their own copy.
+
 Signed-out visitors see a **landing page** at `/` (how it works, screenshots, a demo button, and
 Fork / View buttons that point at `GITHUB_URL`); signed-in users go straight to the dashboard.
 

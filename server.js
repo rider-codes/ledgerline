@@ -10,6 +10,8 @@ const cookieSession = require('cookie-session');
 
 const { requireAuth, loadUser } = require('./src/auth');
 const { SESSION_SECRET_FILE } = require('./src/paths');
+const demo = require('./src/demo');
+const demoAi = require('./src/demoai');
 
 const app = express();
 const PUBLIC = path.join(__dirname, 'public');
@@ -72,8 +74,9 @@ app.get('/assets/config.js', (req, res) => {
   res.type('application/javascript').set('Cache-Control', 'no-store');
   res.send(
     `window.__CURRENCY__ = ${JSON.stringify(process.env.CURRENCY || '$')};` +
-      `window.__DEMO__ = ${String(process.env.DEMO_MODE || '').toLowerCase() === 'true'};` +
-      `window.__DEMO_AI__ = ${String(process.env.DEMO_MODE || '').toLowerCase() === 'true' && !!String(process.env.DEMO_ANTHROPIC_API_KEY || '').trim()};` + // a boolean only, never the key
+      `window.__DEMO__ = ${demo.enabled()};` +
+      `window.__DEMO_ONLY__ = ${demo.only()};` +
+      `window.__DEMO_AI__ = ${demo.enabled() && demoAi.enabled()};` + // a boolean only, never the key
       `window.__GITHUB__ = ${JSON.stringify(GITHUB_URL)};`
   );
 });
@@ -103,12 +106,15 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'Unknown endpoint.' 
 
 // ---- pages ----
 app.get(['/login', '/signup'], (req, res) => {
-  if (loadUser(req)) return res.redirect('/');
+  // demo-only sites have no accounts: the landing page is the only way in
+  if (demo.only() || loadUser(req)) return res.redirect('/');
   res.sendFile(path.join(PUBLIC, req.path === '/signup' ? 'signup.html' : 'login.html'));
 });
 
-// "/" is the landing page for visitors and the dashboard once signed in
+// "/" is the landing page for visitors and the dashboard once signed in; /about is always the landing
+// page, so a signed-in visitor can still read how the project works and find the GitHub buttons
 app.get('/', (req, res) => res.sendFile(path.join(PUBLIC, loadUser(req) ? 'index.html' : 'landing.html')));
+app.get('/about', (req, res) => res.sendFile(path.join(PUBLIC, 'landing.html')));
 
 const PAGES = {
   '/transactions': 'transactions.html',

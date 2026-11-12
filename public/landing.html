@@ -25,7 +25,7 @@
         <a href="#source">Open source</a>
       </nav>
       <div class="lp-nav-cta">
-        <a class="btn ghost sm" href="/login">Sign in</a>
+        <a class="btn ghost sm" data-accounts href="/login">Sign in</a>
         <button class="btn primary sm" type="button" data-demo>Try the demo</button>
       </div>
     </div>
@@ -45,7 +45,7 @@
             Fork on GitHub
           </a>
         </div>
-        <p class="lp-note"><span data-demo-only>No sign-up needed: you get a private sandbox with 15 months of sample data. </span>Or <a href="/signup">create an account</a>.</p>
+        <p class="lp-note"><span data-demo-only>No sign-up needed: you get a private sandbox with 15 months of sample data. </span><span data-accounts>Or <a href="/signup">create an account</a>.</span></p>
         <p class="lp-err" role="alert"></p>
       </div>
       <figure class="lp-frame lp-hero-shot">
@@ -206,11 +206,11 @@ npm start</code></pre>
   <footer class="lp-foot">
     <div class="lp-wrap lp-foot-in">
       <span><b>Ledgerline</b> &middot; a local-first finance tracker</span>
-      <span class="lp-foot-links"><a href="/login">Sign in</a><a href="/signup">Create account</a><a data-github href="#" target="_blank" rel="noopener">GitHub</a></span>
+      <span class="lp-foot-links"><a data-accounts href="/login">Sign in</a><a data-accounts href="/signup">Create account</a><a data-github href="#" target="_blank" rel="noopener">GitHub</a></span>
     </div>
   </footer>
 
   <script src="/assets/config.js"></script>
-  <script src="/assets/landing.js?v=2"></script>
+  <script src="/assets/landing.js?v=3"></script>
 </body>
 </html>
