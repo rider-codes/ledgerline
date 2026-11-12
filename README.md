@@ -149,7 +149,7 @@ Read these numbers carefully:
 
 ## Demo mode (public showcase)
 
-Set `DEMO_MODE=true` and the login page shows **Explore with sample data**. Each click creates a
+Set `DEMO_MODE=true` and the login page shows a **See demo** button. Each click creates a
 private sandbox account with the sample dataset, so visitors never see or change each other's
 data. Sandboxes:
 
@@ -169,7 +169,7 @@ redirect to the landing page and the API answers 403), so nobody's real finances
 server and the only way in is a sandbox. People who want to use their own data run their own copy.
 
 Signed-out visitors see a **landing page** at `/` (how it works, screenshots, a demo button, and
-Fork / View buttons that point at `GITHUB_URL`); signed-in users go straight to the dashboard.
+Clone / Fork buttons that point at `GITHUB_URL`); signed-in users go straight to the dashboard.
 
 ## Data & privacy
 

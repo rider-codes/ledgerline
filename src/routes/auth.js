@@ -16,7 +16,7 @@ const ipSprayLimit = rateLimit({ windowMs: 15 * 60_000, max: 40, message: 'Too m
 // DEMO_ONLY sites have no real accounts: refuse sign-up and sign-in at the API, not just in the UI
 const noAccounts = (req, res, next) =>
   demo.only()
-    ? res.status(403).json({ error: 'Accounts are turned off on this demo. Use "Explore with sample data", or copy the project to run your own.' })
+    ? res.status(403).json({ error: 'Accounts are turned off on this demo. Use "See demo", or copy the project to run your own.' })
     : next();
 
 router.post('/signup', noAccounts, ipSprayLimit, signupLimit, (req, res) => {
