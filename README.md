@@ -169,7 +169,7 @@ redirect to the landing page and the API answers 403), so nobody's real finances
 server and the only way in is a sandbox. People who want to use their own data run their own copy.
 
 Signed-out visitors see a **landing page** at `/` (how it works, screenshots, a demo button, and
-Clone / Fork buttons that point at `GITHUB_URL`); signed-in users go straight to the dashboard.
+Clone-from-GitHub button that point at `GITHUB_URL`); signed-in users go straight to the dashboard.
 
 ## Data & privacy
 
