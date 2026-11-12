@@ -3,7 +3,7 @@
 
 // Runs the 50-question retrieval eval against the snapshot and writes eval/results/<label>.{json,md}.
 //
-//   node --experimental-sqlite eval/run-eval.js [--label baseline] [--pin] [--weight 0.5] [--semMin 0.5]
+//   node --experimental-sqlite eval/run-eval.js [--label baseline] [--pin] [--weight 1] [--semMin 0.6]
 //
 // Conditions (same k for all):
 //   keyword   retrieve(mode 'lexical')                 SQL filters + BM25-lite
@@ -35,8 +35,10 @@ const { retrievalMetrics, judgeAnswer, floor4 } = require('./lib/score');
 const args = process.argv.slice(2);
 const opt = (name, dflt) => (args.includes(name) ? args[args.indexOf(name) + 1] : dflt);
 const LABEL = opt('--label', 'baseline');
-const WEIGHT = Number(opt('--weight', '0.5'));
-const SEM_MIN = Number(opt('--semMin', '0.5'));
+// Defaults are the tuned values the app ships with (eval/tune.js, src/embed.js). Runs before the
+// `final-tuned` label used 0.5 / 0.5 and are comparable to each other, not to later runs.
+const WEIGHT = Number(opt('--weight', '1'));
+const SEM_MIN = Number(opt('--semMin', '0.6'));
 const PIN = args.includes('--pin');
 const QFILE = opt('--questions', path.resolve(__dirname, 'questions.json'));
 const OUT_DIR = opt('--out', path.resolve(__dirname, 'results'));
@@ -45,7 +47,9 @@ const CONDITIONS = [
   { key: 'keyword', label: 'keyword', opts: { mode: 'lexical' } },
   { key: 'semantic', label: 'semantic', opts: { mode: 'semantic', semMin: SEM_MIN } },
   { key: 'blended', label: 'blended', opts: { mode: 'hybrid', weight: WEIGHT, semMin: SEM_MIN } },
-  { key: 'app', label: 'app default (auto)', opts: { mode: 'auto', weight: WEIGHT, semMin: SEM_MIN } },
+  // no weight / semMin on purpose: this condition must use the app's own defaults (src/embed.js),
+  // or the "app default" column stops measuring what ships
+  { key: 'app', label: 'app default (auto)', opts: { mode: 'auto' } },
 ];
 
 const fail = (msg) => { console.error(`ABORTED: ${msg}`); process.exit(1); };
