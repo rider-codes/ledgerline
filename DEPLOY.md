@@ -24,6 +24,27 @@ fit: their filesystem is temporary, so every user and transaction would be lost.
 Node is pinned to 22.x (`package.json` `engines`, `.node-version`); `npm start` passes
 `--experimental-sqlite`.
 
+## Render, free demo-only service (what the live demo uses)
+
+With `DEMO_ONLY=true` nobody's real data is stored, so no persistent disk is needed and Render's free
+instance is enough. Create it in the dashboard (**New + → Web Service → Public Git Repository**):
+
+| Setting | Value |
+|---|---|
+| Repository | your fork or `https://github.com/<you>/ledgerline` |
+| Branch / Runtime | `main` / Node |
+| Build Command | `npm ci --omit=dev` |
+| Start Command | `npm run start` |
+| Instance type | **Free** |
+| Health Check Path (Advanced) | `/healthz` |
+| Environment | `NODE_ENV=production`, `DEMO_ONLY=true`, `SESSION_SECRET` (use Render's *Generate* button), `CURRENCY=₹`, `AI_BACKEND=rules`, `EMBED_ENABLED=false`, `NODE_VERSION=22` |
+
+Render defaults the instance type to the paid Starter plan, so check that **Free** is selected before
+deploying. A free instance sleeps when idle (the first request afterwards can take about a minute), and a
+restart or redeploy clears the SQLite file, which only affects disposable demo sandboxes. Every push to
+`main` redeploys automatically. For real accounts (`DEMO_ONLY=false`) use the Blueprint below instead,
+which adds a persistent disk.
+
 ## Render (Blueprint)
 
 `render.yaml` describes everything above: one web service on the `starter` plan, a 1 GB disk

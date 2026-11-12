@@ -4,7 +4,9 @@ A local-first personal finance tracker with an assistant you can ask where your 
 Import a bank or card CSV, get every transaction auto-categorized, explore the dashboard and
 reports, and chat with an assistant whose answers are **measured against a hand-labelled eval**.
 
-<!-- Live demo: add your Render URL here after deploying (see DEPLOY.md) -->
+**Live demo: <https://ledgerline-iglk.onrender.com>**: one click gives you a private sandbox with 15
+months of sample data (no sign-up). It runs on free hosting, so the first load after a quiet spell can
+take up to a minute to wake up.
 
 ![Dashboard](docs/screenshots/dashboard.jpg)
 
