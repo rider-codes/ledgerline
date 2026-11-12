@@ -9,7 +9,8 @@
 
   // demo: one click creates a private sandbox with sample data (server needs DEMO_MODE=true)
   if (!window.__DEMO__) all('[data-demo], [data-demo-only]').forEach((e) => { e.hidden = true; });
-  if (window.__DEMO_AI__) all('[data-demo-ai-only]').forEach((e) => { e.hidden = false; });
+  all('[data-demo-ai-only]').forEach((e) => { e.hidden = !window.__DEMO_AI__; });
+  all('[data-demo-builtin-only]').forEach((e) => { e.hidden = !!window.__DEMO_AI__; });
 
   const buttons = Array.from(all('[data-demo]'));
   const labels = new Map(buttons.map((b) => [b, b.textContent]));

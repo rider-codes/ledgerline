@@ -29,6 +29,9 @@ function authForm(endpoint) {
   const demo = document.getElementById('demo');
   if (!box || !demo || !window.__DEMO__) return;
   box.hidden = false;
+  // the cloud-AI disclosure is only shown when the server actually has the demo AI turned on
+  document.querySelectorAll('[data-demo-ai-only]').forEach((e) => { e.hidden = !window.__DEMO_AI__; });
+  document.querySelectorAll('[data-demo-builtin-only]').forEach((e) => { e.hidden = !!window.__DEMO_AI__; });
   const label = demo.textContent;
   const reset = () => { demo.disabled = false; demo.textContent = label; };
   demo.addEventListener('click', async () => {
